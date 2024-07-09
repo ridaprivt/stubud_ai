@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "395308268936",
+    "project_id": "learn-ai-d731c",
+    "storage_bucket": "learn-ai-d731c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395308268936:android:4e9eb69d0773b89d0b4e3d",
+        "android_client_info": {
+          "package_name": "com.learn.ai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "395308268936-0aodki6cn3bbksn7qvhgpfb4us96ss60.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.learn.ai",
+            "certificate_hash": "86dda3f55315019be27e438a448f10f2f97a9449"
+          }
+        },
+        {
+          "client_id": "395308268936-unblglu2tatq42vd840t2oiin184uqir.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXyiCtOm8W789Ebpk-M70HDulkYbFphGg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "395308268936-unblglu2tatq42vd840t2oiin184uqir.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "395308268936-36bm7ah7sbc36ua94m3bi7ai5lmq70s7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.learnai"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,87 @@
+
+  // void addQuizToFirestore() async {
+  //   List<Map<String, dynamic>> quizQuestions = [
+  //     {
+  //       'question': 'What is the capital of France?',
+  //       'options': ['Berlin', 'Rome', 'Madrid', 'Paris'],
+  //       'img':
+  //           'https://atlas-content-cdn.pixelsquid.com/stock-images/earth-k1kYV36-600.jpg',
+  //     },
+  //     {
+  //       'question': 'Which city serves as the capital of Australia?',
+  //       'options': ['Sydney', 'Melbourne', 'Canberra', 'Perth'],
+  //       'answer': 'Canberra',
+  //       'img':
+  //           'https://atlas-content-cdn.pixelsquid.com/stock-images/earth-k1kYV36-600.jpg',
+  //     },
+  //     {
+  //       'question': 'What is the capital of Brazil?',
+  //       'options': ['Rio de Janeiro', 'Brasília', 'São Paulo', 'Salvador'],
+  //       'answer': 'Brasília',
+  //       'img':
+  //           'https://atlas-content-cdn.pixelsquid.com/stock-images/earth-k1kYV36-600.jpg',
+  //     },
+  //     {
+  //       'question': 'Which city is the capital of Japan?',
+  //       'options': ['Kyoto', 'Osaka', 'Tokyo', 'Nagoya'],
+  //       'answer': 'Tokyo',
+  //       'img':
+  //           'https://atlas-content-cdn.pixelsquid.com/stock-images/earth-k1kYV36-600.jpg',
+  //     },
+  //     {
+  //       'question': 'What is the capital of Argentina?',
+  //       'options': ['Buenos Aires', 'Cordoba', 'Rosario', 'Mendoza'],
+  //       'answer': 'Buenos Aires',
+  //       'img':
+  //           'https://atlas-content-cdn.pixelsquid.com/stock-images/earth-k1kYV36-600.jpg',
+  //     },
+  //     {
+  //       'question': 'Which city is the capital of Russia?',
+  //       'options': [
+  //         'Saint Petersburg',
+  //         'Moscow',
+  //         'Novosibirsk',
+  //         'Yekaterinburg'
+  //       ],
+  //       'answer': 'Moscow',
+  //       'img':
+  //           'https://atlas-content-cdn.pixelsquid.com/stock-images/earth-k1kYV36-600.jpg',
+  //     },
+  //     {
+  //       'question': 'What is the capital of India?',
+  //       'options': ['New Delhi', 'Mumbai', 'Kolkata', 'Bangalore'],
+  //       'answer': 'New Delhi',
+  //       'img':
+  //           'https://atlas-content-cdn.pixelsquid.com/stock-images/earth-k1kYV36-600.jpg',
+  //     },
+  //     {
+  //       'question': 'Which city serves as the capital of Mexico?',
+  //       'options': ['Guadalajara', 'Monterrey', 'Mexico City', 'Cancun'],
+  //       'answer': 'Mexico City',
+  //       'img':
+  //           'https://atlas-content-cdn.pixelsquid.com/stock-images/earth-k1kYV36-600.jpg',
+  //     },
+  //   ];
+
+  //   CollectionReference quizCollection =
+  //       FirebaseFirestore.instance.collection('quizzes');
+
+  //   try {
+  //     await quizCollection.doc('Geography').set({
+  //       'subject': 'Geography',
+  //       'quiz 1': quizQuestions,
+  //     });
+
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Quiz added to Firestore successfully!'),
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Failed to add quiz to Firestore: $e'),
+  //       ),
+  //     );
+  //   }
+  // }

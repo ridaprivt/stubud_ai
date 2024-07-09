@@ -1,0 +1,441 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:learnai/UI/home/Home.dart';
+import 'package:learnai/UI/subscription/Subscription.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class Profile extends StatefulWidget {
+  const Profile({super.key});
+
+  @override
+  State<Profile> createState() => _ProfileState();
+}
+
+class _ProfileState extends State<Profile> {
+  List<String> items = [];
+  TextEditingController textEditingController = TextEditingController();
+  TextEditingController gradeController = TextEditingController();
+  bool post = false;
+  @override
+  void initState() {
+    super.initState();
+    _calculateAndAssignBadges();
+  }
+
+  Future<Map<String, dynamic>> _getUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      return userDoc.data() as Map<String, dynamic>;
+    }
+    return {};
+  }
+
+  Future<void> _calculateAndAssignBadges() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      QuerySnapshot resultsSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('results')
+          .get();
+
+      int totalScore = 0;
+      int totalMarks = 0;
+      int quizCount = resultsSnapshot.docs.length;
+
+      for (var doc in resultsSnapshot.docs) {
+        var data = doc.data() as Map<String, dynamic>;
+        if (data.containsKey('quiz 1')) {
+          totalScore += (data['quiz 1']['score'] ?? 0) as int;
+          totalMarks += (data['quiz 1']['total_marks'] ?? 0) as int;
+        }
+      }
+
+      String badge = '';
+      if (quizCount > 0) {
+        double averageScore = (totalScore / totalMarks) * 100;
+        if (averageScore >= 90) {
+          badge = 'High Achiever';
+        } else if (averageScore >= 70) {
+          badge = 'Quick Learner';
+        } else {
+          badge = 'Night Owl';
+        }
+      }
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({'badge': badge});
+    }
+  }
+
+  Future<void> proceed() async {
+    if (gradeController.text.isEmpty || items.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please add subjects and grade.',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+    setState(() {
+      post = true;
+    });
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('userID') ?? 'unknown';
+
+      CollectionReference users =
+          FirebaseFirestore.instance.collection('users');
+
+      await users.doc(userId).set({
+        'subjects': FieldValue.arrayUnion(items),
+        'grade': gradeController.text,
+      }, SetOptions(merge: true));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Data saved successfully!')),
+      );
+      Get.offAll(Home());
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save data: $e')),
+      );
+    } finally {
+      setState(() {
+        post = false;
+      });
+    }
+  }
+
+  Future<void> _showAddSubjectDialog() async {
+    TextEditingController subjectController = TextEditingController();
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Add Subject',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+          ),
+          content: TextField(
+            controller: subjectController,
+            decoration: InputDecoration(
+              hintText: 'Enter Subject',
+              hintStyle: GoogleFonts.poppins(),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(
+                'Add',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              ),
+              onPressed: () async {
+                if (subjectController.text.isNotEmpty) {
+                  setState(() {
+                    items.add(subjectController.text);
+                  });
+
+                  final prefs = await SharedPreferences.getInstance();
+                  final userId = prefs.getString('userID') ?? 'unknown';
+
+                  CollectionReference users =
+                      FirebaseFirestore.instance.collection('users');
+
+                  try {
+                    await users.doc(userId).set({
+                      'subjects':
+                          FieldValue.arrayUnion([subjectController.text]),
+                    }, SetOptions(merge: true));
+
+                    // Display Snackbar after successfully saving the data
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Subject added successfully!')),
+                    );
+                    Get.offAll(Home());
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to add subject: $e')),
+                    );
+                  }
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _getUserData(),
+      builder: (context, snapshot) {
+        Map<String, dynamic> userData = snapshot.data ?? {};
+        List<String> subjects = List<String>.from(userData['subjects'] ?? []);
+        String badge = userData['badge'] ?? '';
+
+        return SafeArea(
+          child: Scaffold(
+            backgroundColor: const Color(0xff1ED760),
+            body: SingleChildScrollView(
+              child: Container(
+                height: 100.h,
+                child: Stack(
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Image.asset(
+                          'assets/cable.png',
+                          width: 100.w,
+                        ),
+                        const Spacer(),
+                        Container(
+                          height: 80.h,
+                          width: 100.w,
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.5),
+                                  spreadRadius: 5,
+                                  blurRadius: 7,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                              borderRadius: BorderRadius.only(
+                                  topRight: Radius.circular(25.sp),
+                                  topLeft: Radius.circular(25.sp))),
+                          child: ListView(
+                            shrinkWrap: true,
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.all(15.sp),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: const Color(0xff1ED760),
+                                      radius: 19.sp,
+                                      child: Image.asset(
+                                        'assets/1.png',
+                                        height: 19.sp,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    CircleAvatar(
+                                      backgroundColor: const Color(0xff1ED760),
+                                      radius: 19.sp,
+                                      child: Image.asset(
+                                        'assets/2.png',
+                                        height: 19.sp,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 4.h),
+                              Center(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      userData['userName']?.split(' ')?.first ??
+                                          '',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 19.sp),
+                                    ),
+                                    Text(
+                                      userData['userName']?.split(' ')?.last ??
+                                          '',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.poppins(
+                                          height: 4.sp,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20.sp),
+                                    ),
+                                    SizedBox(height: 1.h),
+                                    Text(
+                                      userData['email'] ?? '',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.poppins(
+                                          height: 5.sp,
+                                          color: Colors.grey,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 15.sp),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 1.h),
+                              InkWell(
+                                onTap: () {
+                                  Get.to(Subscription());
+                                },
+                                child: Padding(
+                                  padding: EdgeInsets.all(15.sp),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        'Upgrade to Premium ',
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18.sp),
+                                      ),
+                                      Icon(
+                                        Icons.star,
+                                        color: Colors.amber,
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 1.h),
+                              Container(
+                                padding: EdgeInsets.all(15.sp),
+                                margin: EdgeInsets.symmetric(horizontal: 15.sp),
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20.sp),
+                                    color: const Color(0xff1ED760)),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text('BADGES',
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.poppins(
+                                              height: 5.sp,
+                                              fontSize: 20.sp,
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.bold,
+                                            )),
+                                        const Spacer(),
+                                        const Icon(Icons.arrow_forward)
+                                      ],
+                                    ),
+                                    SizedBox(height: 2.h),
+                                    Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          if (badge == 'Quick Learner')
+                                            badgeWidget('a', 'Quick Learner'),
+                                          if (badge == 'Night Owl')
+                                            badgeWidget('b', 'Night Owl'),
+                                          if (badge == 'High Achiever')
+                                            badgeWidget('c', 'High Achiever'),
+                                        ]),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 1.h),
+                              Padding(
+                                padding: EdgeInsets.all(15.sp),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Subject Trouble?',
+                                      style: GoogleFonts.poppins(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18.sp),
+                                    ),
+                                    Spacer(),
+                                    InkWell(
+                                      onTap: _showAddSubjectDialog,
+                                      child: Icon(
+                                        Icons.add,
+                                        color: Colors.black,
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 47.sp,
+                                child: ListView.builder(
+                                  padding: EdgeInsets.only(right: 3.w),
+                                  scrollDirection: Axis.horizontal,
+                                  shrinkWrap: true,
+                                  itemCount: subjects.length,
+                                  itemBuilder: (context, index) {
+                                    return subjectWidget(subjects[index]);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(top: 12.h),
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: CircleAvatar(
+                          backgroundColor:
+                              const Color.fromARGB(255, 255, 255, 255),
+                          radius: 35.sp,
+                          backgroundImage: NetworkImage(
+                            userData['userPhotoUrl'] ??
+                                'https://via.placeholder.com/150',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget badgeWidget(String img, String text) {
+    return Column(
+      children: [
+        Image.asset(
+          'assets/$img.png',
+          width: 23.w,
+        ),
+        SizedBox(height: 1.h),
+        Text(text,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              height: 5.sp,
+              color: Colors.black,
+              fontWeight: FontWeight.w500,
+            ))
+      ],
+    );
+  }
+}
