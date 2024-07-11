@@ -32,6 +32,7 @@ class _MyAppState extends State<MyApp> {
     return ResponsiveSizer(builder: (context, orientation, screenType) {
       return GetMaterialApp(
           theme: ThemeData(
+            scaffoldBackgroundColor: Colors.white,
             pageTransitionsTheme: PageTransitionsTheme(
               builders: {
                 TargetPlatform.android: CupertinoPageTransitionsBuilder(),

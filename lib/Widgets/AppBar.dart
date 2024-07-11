@@ -56,17 +56,18 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  userData['userName']?.split(' ')?.first ?? '',
+                  userData['userName'] ?? '',
                   style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.bold,
                     fontSize: 18.sp,
                   ),
                 ),
+                SizedBox(height: 0.5.h),
                 Text(
-                  userData['userName']?.split(' ')?.last ?? '',
+                  userData['email'] ?? '',
                   style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 19.sp,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 15.sp,
                   ),
                 ),
               ],

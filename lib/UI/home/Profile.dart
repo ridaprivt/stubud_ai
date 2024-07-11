@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:learnai/UI/home/EditProfile.dart';
 import 'package:learnai/UI/home/Home.dart';
 import 'package:learnai/UI/subscription/Subscription.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
@@ -20,6 +21,7 @@ class _ProfileState extends State<Profile> {
   TextEditingController textEditingController = TextEditingController();
   TextEditingController gradeController = TextEditingController();
   bool post = false;
+
   @override
   void initState() {
     super.initState();
@@ -41,34 +43,66 @@ class _ProfileState extends State<Profile> {
   Future<void> _calculateAndAssignBadges() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      QuerySnapshot resultsSnapshot = await FirebaseFirestore.instance
+      CollectionReference quizzesCollection = FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
-          .collection('results')
-          .get();
+          .collection('quizzes');
+
+      QuerySnapshot subjectSnapshots = await quizzesCollection.get();
 
       int totalScore = 0;
       int totalMarks = 0;
-      int quizCount = resultsSnapshot.docs.length;
+      int quizCount = 0;
 
-      for (var doc in resultsSnapshot.docs) {
-        var data = doc.data() as Map<String, dynamic>;
-        if (data.containsKey('quiz 1')) {
-          totalScore += (data['quiz 1']['score'] ?? 0) as int;
-          totalMarks += (data['quiz 1']['total_marks'] ?? 0) as int;
+      for (var subjectDoc in subjectSnapshots.docs) {
+        print('Processing subject: ${subjectDoc.id}');
+
+        // Get all quiz collections (quiz1, quiz2, etc.) under each subject
+        QuerySnapshot quizzesSnapshot = await quizzesCollection
+            .doc(subjectDoc.id)
+            .collection('quizzes')
+            .get();
+
+        for (var quizDoc in quizzesSnapshot.docs) {
+          print('Processing quiz: ${quizDoc.id}');
+
+          // Get the quizData document within each quiz collection
+          DocumentSnapshot quizDataDoc = await quizzesCollection
+              .doc(subjectDoc.id)
+              .collection(quizDoc.id)
+              .doc('quizData')
+              .get();
+
+          if (quizDataDoc.exists) {
+            var quizData = quizDataDoc.data() as Map<String, dynamic>;
+            print('Quiz data found: $quizData');
+            if (quizData.containsKey('obtained_marks') &&
+                quizData.containsKey('total_marks')) {
+              totalScore += int.parse(quizData['obtained_marks']);
+              totalMarks += int.parse(quizData['total_marks']);
+              quizCount++;
+            } else {
+              print('Quiz data missing required fields.');
+            }
+          } else {
+            print('Quiz data does not exist for ${quizDoc.id}');
+          }
         }
       }
 
+      print('Total quizzes processed: $quizCount');
+      print('Total score: $totalScore');
+      print('Total marks: $totalMarks');
+
       String badge = '';
-      if (quizCount > 0) {
-        double averageScore = (totalScore / totalMarks) * 100;
-        if (averageScore >= 90) {
-          badge = 'High Achiever';
-        } else if (averageScore >= 70) {
-          badge = 'Quick Learner';
-        } else {
-          badge = 'Night Owl';
-        }
+
+      double averageScore = (totalScore / totalMarks) * 100;
+      if (averageScore >= 90) {
+        badge = 'High Achiever';
+      } else if (averageScore >= 70) {
+        badge = 'Quick Learner';
+      } else {
+        badge = 'Night Owl';
       }
 
       await FirebaseFirestore.instance
@@ -194,50 +228,62 @@ class _ProfileState extends State<Profile> {
     return FutureBuilder<Map<String, dynamic>>(
       future: _getUserData(),
       builder: (context, snapshot) {
-        Map<String, dynamic> userData = snapshot.data ?? {};
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data == null) {
+          return Center(child: Text('No user data found'));
+        }
+
+        Map<String, dynamic> userData = snapshot.data!;
         List<String> subjects = List<String>.from(userData['subjects'] ?? []);
         String badge = userData['badge'] ?? '';
 
         return SafeArea(
-          child: Scaffold(
-            backgroundColor: const Color(0xff1ED760),
-            body: SingleChildScrollView(
-              child: Container(
-                height: 100.h,
-                child: Stack(
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Image.asset(
-                          'assets/cable.png',
-                          width: 100.w,
-                        ),
-                        const Spacer(),
-                        Container(
-                          height: 80.h,
-                          width: 100.w,
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 5,
-                                  blurRadius: 7,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                              borderRadius: BorderRadius.only(
-                                  topRight: Radius.circular(25.sp),
-                                  topLeft: Radius.circular(25.sp))),
-                          child: ListView(
-                            shrinkWrap: true,
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.all(15.sp),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
+            child: Scaffold(
+          backgroundColor: const Color(0xff1ED760),
+          body: SingleChildScrollView(
+            child: Container(
+              height: 100.h,
+              child: Stack(
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Image.asset(
+                        'assets/cable.png',
+                        width: 100.w,
+                      ),
+                      const Spacer(),
+                      Container(
+                        height: 80.h,
+                        width: 100.w,
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 5,
+                                blurRadius: 7,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                            borderRadius: BorderRadius.only(
+                                topRight: Radius.circular(25.sp),
+                                topLeft: Radius.circular(25.sp))),
+                        child: ListView(
+                          shrinkWrap: true,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.all(15.sp),
+                              child: Row(
+                                children: [
+                                  InkWell(
+                                    onTap: () {
+                                      Get.to(EditProfile());
+                                    },
+                                    child: CircleAvatar(
                                       backgroundColor: const Color(0xff1ED760),
                                       radius: 19.sp,
                                       child: Image.asset(
@@ -245,177 +291,170 @@ class _ProfileState extends State<Profile> {
                                         height: 19.sp,
                                       ),
                                     ),
-                                    const Spacer(),
-                                    CircleAvatar(
-                                      backgroundColor: const Color(0xff1ED760),
-                                      radius: 19.sp,
-                                      child: Image.asset(
-                                        'assets/2.png',
-                                        height: 19.sp,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: 4.h),
-                              Center(
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      userData['userName']?.split(' ')?.first ??
-                                          '',
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.poppins(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 19.sp),
-                                    ),
-                                    Text(
-                                      userData['userName']?.split(' ')?.last ??
-                                          '',
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.poppins(
-                                          height: 4.sp,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20.sp),
-                                    ),
-                                    SizedBox(height: 1.h),
-                                    Text(
-                                      userData['email'] ?? '',
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.poppins(
-                                          height: 5.sp,
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 15.sp),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: 1.h),
-                              InkWell(
-                                onTap: () {
-                                  Get.to(Subscription());
-                                },
-                                child: Padding(
-                                  padding: EdgeInsets.all(15.sp),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        'Upgrade to Premium ',
-                                        style: GoogleFonts.poppins(
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18.sp),
-                                      ),
-                                      Icon(
-                                        Icons.star,
-                                        color: Colors.amber,
-                                      )
-                                    ],
                                   ),
-                                ),
-                              ),
-                              SizedBox(height: 1.h),
-                              Container(
-                                padding: EdgeInsets.all(15.sp),
-                                margin: EdgeInsets.symmetric(horizontal: 15.sp),
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20.sp),
-                                    color: const Color(0xff1ED760)),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text('BADGES',
-                                            textAlign: TextAlign.center,
-                                            style: GoogleFonts.poppins(
-                                              height: 5.sp,
-                                              fontSize: 20.sp,
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.bold,
-                                            )),
-                                        const Spacer(),
-                                        const Icon(Icons.arrow_forward)
-                                      ],
+                                  const Spacer(),
+                                  CircleAvatar(
+                                    backgroundColor: const Color(0xff1ED760),
+                                    radius: 19.sp,
+                                    child: Image.asset(
+                                      'assets/2.png',
+                                      height: 19.sp,
                                     ),
-                                    SizedBox(height: 2.h),
-                                    Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          if (badge == 'Quick Learner')
-                                            badgeWidget('a', 'Quick Learner'),
-                                          if (badge == 'Night Owl')
-                                            badgeWidget('b', 'Night Owl'),
-                                          if (badge == 'High Achiever')
-                                            badgeWidget('c', 'High Achiever'),
-                                        ]),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                              SizedBox(height: 1.h),
-                              Padding(
+                            ),
+                            SizedBox(height: 3.h),
+                            Center(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    userData['userName'],
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.poppins(
+                                        height: 4.sp,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20.sp),
+                                  ),
+                                  SizedBox(height: 1.h),
+                                  Text(
+                                    userData['email'] ?? '',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.poppins(
+                                        height: 5.sp,
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 15.sp),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 1.h),
+                            InkWell(
+                              onTap: () {
+                                _calculateAndAssignBadges();
+                                //Get.to(Subscription());
+                              },
+                              child: Padding(
                                 padding: EdgeInsets.all(15.sp),
                                 child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Subject Trouble?',
+                                      'Upgrade to Premium ',
                                       style: GoogleFonts.poppins(
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18.sp),
                                     ),
-                                    Spacer(),
-                                    InkWell(
-                                      onTap: _showAddSubjectDialog,
-                                      child: Icon(
-                                        Icons.add,
-                                        color: Colors.black,
-                                      ),
+                                    Icon(
+                                      Icons.star,
+                                      color: Colors.amber,
                                     )
                                   ],
                                 ),
                               ),
-                              SizedBox(
-                                height: 47.sp,
-                                child: ListView.builder(
-                                  padding: EdgeInsets.only(right: 3.w),
-                                  scrollDirection: Axis.horizontal,
-                                  shrinkWrap: true,
-                                  itemCount: subjects.length,
-                                  itemBuilder: (context, index) {
-                                    return subjectWidget(subjects[index]);
-                                  },
-                                ),
+                            ),
+                            SizedBox(height: 1.h),
+                            Container(
+                              padding: EdgeInsets.all(15.sp),
+                              margin: EdgeInsets.symmetric(horizontal: 15.sp),
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20.sp),
+                                  color: const Color(0xff1ED760)),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text('BADGES',
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.poppins(
+                                            height: 5.sp,
+                                            fontSize: 20.sp,
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.bold,
+                                          )),
+                                      const Spacer(),
+                                      const Icon(Icons.arrow_forward)
+                                    ],
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      if (badge == 'Quick Learner')
+                                        badgeWidget('a', 'Quick Learner'),
+                                      if (badge == 'Night Owl')
+                                        badgeWidget('b', 'Night Owl'),
+                                      if (badge == 'High Achiever')
+                                        badgeWidget('c', 'High Achiever'),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                            SizedBox(height: 1.h),
+                            Padding(
+                              padding: EdgeInsets.all(15.sp),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Subject Trouble?',
+                                    style: GoogleFonts.poppins(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18.sp),
+                                  ),
+                                  Spacer(),
+                                  InkWell(
+                                    onTap: _showAddSubjectDialog,
+                                    child: Icon(
+                                      Icons.add,
+                                      color: Colors.black,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              height: 47.sp,
+                              child: ListView.builder(
+                                padding: EdgeInsets.only(right: 3.w),
+                                scrollDirection: Axis.horizontal,
+                                shrinkWrap: true,
+                                itemCount: subjects.length,
+                                itemBuilder: (context, index) {
+                                  return subjectWidget(subjects[index]);
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(top: 12.h),
-                      child: Align(
-                        alignment: Alignment.topCenter,
-                        child: CircleAvatar(
-                          backgroundColor:
-                              const Color.fromARGB(255, 255, 255, 255),
-                          radius: 35.sp,
-                          backgroundImage: NetworkImage(
-                            userData['userPhotoUrl'] ??
-                                'https://via.placeholder.com/150',
-                          ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 12.h),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: CircleAvatar(
+                        backgroundColor:
+                            const Color.fromARGB(255, 255, 255, 255),
+                        radius: 35.sp,
+                        backgroundImage: NetworkImage(
+                          userData['userPhotoUrl'] ??
+                              'https://via.placeholder.com/150',
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
-        );
+        ));
       },
     );
   }
