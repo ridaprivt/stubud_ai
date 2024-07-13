@@ -3,9 +3,12 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:learnai/UI/authentication/Login.dart';
 import 'package:learnai/UI/home/EditProfile.dart';
 import 'package:learnai/UI/home/Home.dart';
+import 'package:learnai/UI/home/Settings.dart';
 import 'package:learnai/UI/subject/Subject.dart';
+import 'package:learnai/UI/subscription/Subscription.dart';
 import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -244,7 +247,7 @@ class _ProfileState extends State<Profile> {
 
         return SafeArea(
             child: Scaffold(
-          backgroundColor: primary,
+          backgroundColor: globalController.primaryColor.value,
           body: SingleChildScrollView(
             child: Container(
               height: 100.h,
@@ -286,7 +289,8 @@ class _ProfileState extends State<Profile> {
                                       Get.to(EditProfile());
                                     },
                                     child: CircleAvatar(
-                                      backgroundColor: primary,
+                                      backgroundColor:
+                                          globalController.primaryColor.value,
                                       radius: 19.sp,
                                       child: Image.asset(
                                         'assets/1.png',
@@ -294,11 +298,14 @@ class _ProfileState extends State<Profile> {
                                       ),
                                     ),
                                   ),
-                                  const Spacer(),
+                                  Spacer(),
                                   InkWell(
-                                    onTap: () {},
+                                    onTap: () {
+                                      Get.to(MySettings());
+                                    },
                                     child: CircleAvatar(
-                                      backgroundColor: primary,
+                                      backgroundColor:
+                                          globalController.primaryColor.value,
                                       radius: 19.sp,
                                       child: Image.asset(
                                         'assets/2.png',
@@ -337,8 +344,7 @@ class _ProfileState extends State<Profile> {
                             SizedBox(height: 1.h),
                             InkWell(
                               onTap: () {
-                                _calculateAndAssignBadges();
-                                //Get.to(Subscription());
+                                Get.to(Subscription());
                               },
                               child: Padding(
                                 padding: EdgeInsets.all(15.sp),
@@ -366,7 +372,7 @@ class _ProfileState extends State<Profile> {
                               width: double.infinity,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(20.sp),
-                                  color: primary),
+                                  color: globalController.primaryColor.value),
                               child: Column(
                                 children: [
                                   Row(
@@ -435,6 +441,7 @@ class _ProfileState extends State<Profile> {
                                 },
                               ),
                             ),
+                            SizedBox(height: 7.h),
                           ],
                         ),
                       ),

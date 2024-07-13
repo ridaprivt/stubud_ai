@@ -32,7 +32,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
-      backgroundColor: primary,
+      backgroundColor: globalController.primaryColor.value,
       body: ListView(
         children: [
           Image.asset('assets/bg.png'),
@@ -78,7 +78,7 @@ class _LoginState extends State<Login> {
                         minWidth: double.infinity,
                         height: 6.h,
                         onPressed: () => LoginWithEmail(),
-                        color: primary,
+                        color: globalController.primaryColor.value,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15.sp)),
@@ -376,8 +376,9 @@ class _LoginState extends State<Login> {
               decoration: InputDecoration(
                 contentPadding:
                     EdgeInsets.symmetric(vertical: 16.sp, horizontal: 10.sp),
-                focusedBorder:
-                    OutlineInputBorder(borderSide: BorderSide(color: primary)),
+                focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: globalController.primaryColor.value)),
                 enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.grey.shade400)),
                 border: OutlineInputBorder(

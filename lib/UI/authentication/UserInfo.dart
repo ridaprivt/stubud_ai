@@ -133,7 +133,7 @@ class _UserInfoState extends State<MyUserInfo> {
                               color: Colors.white,
                               child: Icon(
                                 Icons.arrow_back,
-                                color: primary,
+                                color: globalController.primaryColor.value,
                                 size: 23.sp,
                               )),
                         ),
@@ -175,10 +175,10 @@ class _UserInfoState extends State<MyUserInfo> {
                             labelText: 'Full Name',
                             prefixIcon: Icon(
                               Icons.person,
-                              color: primary,
+                              color: globalController.primaryColor.value,
                             ),
                             labelStyle: GoogleFonts.poppins(
-                                color: primary,
+                                color: globalController.primaryColor.value,
                                 fontWeight: FontWeight.w500,
                                 fontSize: 17.sp),
                           ),

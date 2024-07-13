@@ -134,7 +134,7 @@ class _EditProfileState extends State<EditProfile> {
                         labelText: 'Username',
                         border: OutlineInputBorder(),
                         labelStyle: GoogleFonts.poppins(
-                            color: primary,
+                            color: globalController.primaryColor.value,
                             fontWeight: FontWeight.w500,
                             fontSize: 17.sp),
                       ),

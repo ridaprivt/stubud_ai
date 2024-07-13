@@ -40,7 +40,7 @@ class _SignUpState extends State<SignUp> {
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
-      backgroundColor: primary,
+      backgroundColor: globalController.primaryColor.value,
       body: ListView(
         children: [
           Image.asset('assets/bg.png'),
@@ -95,7 +95,7 @@ class _SignUpState extends State<SignUp> {
                         minWidth: double.infinity,
                         height: 7.h,
                         onPressed: signUpWithFirebase,
-                        color: primary,
+                        color: globalController.primaryColor.value,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15.sp)),
@@ -156,8 +156,9 @@ class _SignUpState extends State<SignUp> {
             obscureText: obscureText,
             decoration: InputDecoration(
               contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-              focusedBorder:
-                  OutlineInputBorder(borderSide: BorderSide(color: primary)),
+              focusedBorder: OutlineInputBorder(
+                  borderSide:
+                      BorderSide(color: globalController.primaryColor.value)),
               enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(
                       color: const Color.fromARGB(255, 221, 221, 221))),

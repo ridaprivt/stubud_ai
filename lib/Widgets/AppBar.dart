@@ -36,7 +36,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
     return Obx(() {
       if (userController.isLoading.value) {
         return AppBar(
-          backgroundColor: primary,
+          backgroundColor: globalController.primaryColor.value,
           toolbarHeight: 15.h,
           title: Center(
             child: CircularProgressIndicator(),
@@ -47,7 +47,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
       Map<String, dynamic> userData = userController.userData.value;
 
       return AppBar(
-        backgroundColor: primary,
+        backgroundColor: globalController.primaryColor.value,
         toolbarHeight: 15.h,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -102,23 +102,19 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
                 await _toggleNotification();
               },
               child: Obx(() {
-                return isNotificationEnabled.value
-                    ? Container(
-                        height: 6.h,
-                        width: 6.h,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.red,
-                        ),
-                        child: Icon(
-                          Icons.notifications_outlined,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Image.asset(
-                        'assets/bell.png',
-                        height: 6.h,
-                      );
+                return Container(
+                  height: 6.h,
+                  width: 6.h,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color:
+                        isNotificationEnabled.value ? Colors.red : Colors.black,
+                  ),
+                  child: Icon(
+                    Icons.notifications_outlined,
+                    color: Colors.white,
+                  ),
+                );
               }),
             ),
           ],

@@ -36,7 +36,7 @@ class _SubscriptionState extends State<Subscription> {
                       color: Colors.white,
                       child: Icon(
                         Icons.arrow_back,
-                        color: primary,
+                        color: globalController.primaryColor.value,
                         size: 23.sp,
                       )),
                 ),
@@ -52,7 +52,7 @@ class _SubscriptionState extends State<Subscription> {
                 'Interesting facts',
                 'AI tutor for advanced training',
               ],
-              backgroundColor: primary,
+              backgroundColor: globalController.primaryColor.value,
               textColor: Colors.black,
             ),
             SizedBox(height: 2.h),

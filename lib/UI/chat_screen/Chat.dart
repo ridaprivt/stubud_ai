@@ -142,7 +142,8 @@ class _ChatPageState extends State<ChatPage> {
     final isMe = message['sender'] == 'user';
     final messageAlign =
         isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
-    final messageColor = isMe ? primary : Colors.grey[300];
+    final messageColor =
+        isMe ? globalController.primaryColor.value : Colors.grey[300];
 
     return Column(
       crossAxisAlignment: messageAlign,
@@ -233,7 +234,7 @@ class _ChatPageState extends State<ChatPage> {
             child: Icon(
               Icons.send,
               size: 22.sp,
-              color: primary,
+              color: globalController.primaryColor.value,
             ),
           ),
         ),

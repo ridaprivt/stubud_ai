@@ -9,7 +9,6 @@ import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'global_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +16,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   MobileAds.instance.initialize();
-  Get.put(GlobalController()); // Initialize GlobalController
+  Get.put(GlobalController());
   runApp(MyApp());
 }
 
@@ -73,7 +72,7 @@ class GlobalController extends GetxController {
 
   void togglePrimaryColor() {
     if (primaryColor.value == Color(0xff1ED760)) {
-      primaryColor.value = Color(0xff800080);
+      primaryColor.value = Color.fromARGB(255, 170, 128, 198);
     } else {
       primaryColor.value = Color(0xff1ED760);
     }
@@ -81,4 +80,4 @@ class GlobalController extends GetxController {
   }
 }
 
-final GlobalController globalController = Get.put(GlobalController());
+final GlobalController globalController = Get.find();

@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -325,38 +326,52 @@ class _SubjectState extends State<Subject> {
   }
 
   Future<void> _loadCachedTopics() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? cachedTopics =
-        prefs.getStringList('cachedTopics_${widget.subjectName}');
-    if (cachedTopics != null) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId != null) {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('cachedTopics')
+          .where('subjectName', isEqualTo: widget.subjectName)
+          .get();
+
       setState(() {
-        _cachedTopics = cachedTopics
-            .map((topic) => json.decode(topic) as Map<String, dynamic>)
+        _cachedTopics = snapshot.docs
+            .map((doc) => {
+                  'topic': doc['topic'],
+                  'intro': doc['intro'],
+                  'subTopics': doc['subTopics']
+                })
             .toList();
-        print('Loaded cached topics: $_cachedTopics');
       });
-    } else {
-      print('No cached topics found for subject: ${widget.subjectName}');
+
+      await fetchSuggestedTopics();
     }
-    await fetchSuggestedTopics();
   }
 
   Future<void> _cacheTopic(
       String topic, String intro, List<String> subTopics) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    Map<String, dynamic> topicData = {
-      'topic': topic,
-      'intro': intro,
-      'subTopics': json.encode(subTopics),
-    };
-    setState(() {
-      _cachedTopics.add(topicData);
-    });
-    List<String> cachedTopics =
-        _cachedTopics.map((topic) => json.encode(topic)).toList();
-    await prefs.setStringList(
-        'cachedTopics_${widget.subjectName}', cachedTopics);
-    print('Cached topics: $cachedTopics');
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId != null) {
+      final topicData = {
+        'topic': topic,
+        'intro': intro,
+        'subTopics': subTopics,
+        'subjectName': widget.subjectName
+      };
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('cachedTopics')
+          .add(topicData);
+
+      setState(() {
+        _cachedTopics.add(topicData);
+      });
+    }
   }
 
   Future<void> fetchData(String topic) async {

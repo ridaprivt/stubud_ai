@@ -358,7 +358,7 @@ class _HomeState extends State<Home> {
                   width: double.infinity,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20.sp),
-                      color: primary),
+                      color: globalController.primaryColor.value),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

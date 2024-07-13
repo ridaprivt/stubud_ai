@@ -267,7 +267,8 @@ class _QuizState extends State<Quiz> {
                               currentStep: currentIndex,
                               size: 15,
                               padding: 0,
-                              selectedColor: primary,
+                              selectedColor:
+                                  globalController.primaryColor.value,
                               unselectedColor:
                                   const Color.fromARGB(255, 232, 232, 232),
                             ),
