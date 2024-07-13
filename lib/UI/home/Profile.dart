@@ -5,7 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:learnai/UI/home/EditProfile.dart';
 import 'package:learnai/UI/home/Home.dart';
-import 'package:learnai/UI/subscription/Subscription.dart';
+import 'package:learnai/UI/subject/Subject.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -21,6 +22,7 @@ class _ProfileState extends State<Profile> {
   TextEditingController textEditingController = TextEditingController();
   TextEditingController gradeController = TextEditingController();
   bool post = false;
+  bool isGreen = true;
 
   @override
   void initState() {
@@ -242,7 +244,7 @@ class _ProfileState extends State<Profile> {
 
         return SafeArea(
             child: Scaffold(
-          backgroundColor: const Color(0xff1ED760),
+          backgroundColor: primary,
           body: SingleChildScrollView(
             child: Container(
               height: 100.h,
@@ -284,7 +286,7 @@ class _ProfileState extends State<Profile> {
                                       Get.to(EditProfile());
                                     },
                                     child: CircleAvatar(
-                                      backgroundColor: const Color(0xff1ED760),
+                                      backgroundColor: primary,
                                       radius: 19.sp,
                                       child: Image.asset(
                                         'assets/1.png',
@@ -293,12 +295,15 @@ class _ProfileState extends State<Profile> {
                                     ),
                                   ),
                                   const Spacer(),
-                                  CircleAvatar(
-                                    backgroundColor: const Color(0xff1ED760),
-                                    radius: 19.sp,
-                                    child: Image.asset(
-                                      'assets/2.png',
-                                      height: 19.sp,
+                                  InkWell(
+                                    onTap: () {},
+                                    child: CircleAvatar(
+                                      backgroundColor: primary,
+                                      radius: 19.sp,
+                                      child: Image.asset(
+                                        'assets/2.png',
+                                        height: 19.sp,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -361,7 +366,7 @@ class _ProfileState extends State<Profile> {
                               width: double.infinity,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(20.sp),
-                                  color: const Color(0xff1ED760)),
+                                  color: primary),
                               child: Column(
                                 children: [
                                   Row(
@@ -450,6 +455,19 @@ class _ProfileState extends State<Profile> {
                       ),
                     ),
                   ),
+                  IconButton(
+                      onPressed: () {
+                        Get.offAll(Home());
+                      },
+                      icon: Container(
+                        padding: EdgeInsets.all(10.sp),
+                        decoration: BoxDecoration(
+                            color: Colors.black, shape: BoxShape.circle),
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                        ),
+                      ))
                 ],
               ),
             ),
@@ -457,6 +475,86 @@ class _ProfileState extends State<Profile> {
         ));
       },
     );
+  }
+
+  subjectWidget(String name) {
+    return Stack(
+      children: [
+        InkWell(
+          onTap: () {
+            Get.to(() => Subject(subjectName: name));
+          },
+          child: Container(
+            padding: EdgeInsets.all(10.sp),
+            margin: EdgeInsets.only(left: 15.sp),
+            width: 47.sp,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey, width: 3.sp),
+              borderRadius: BorderRadius.circular(20.sp),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/sub.jpg',
+                  width: 37.sp,
+                  height: 37.sp,
+                ),
+                Text(
+                  name,
+                  style: GoogleFonts.poppins(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15.sp),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          right: 0,
+          child: InkWell(
+            onTap: () {
+              removeSubject(name);
+            },
+            child: CircleAvatar(
+              backgroundColor: Colors.red,
+              radius: 13.sp,
+              child: Icon(
+                Icons.close,
+                color: Colors.white,
+                size: 15.sp,
+              ),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  Future<void> removeSubject(String subject) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userID') ?? 'unknown';
+
+    CollectionReference users = FirebaseFirestore.instance.collection('users');
+
+    try {
+      await users.doc(userId).update({
+        'subjects': FieldValue.arrayRemove([subject]),
+      });
+
+      setState(() {
+        items.remove(subject);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Subject removed successfully!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to remove subject: $e')),
+      );
+    }
   }
 
   Widget badgeWidget(String img, String text) {

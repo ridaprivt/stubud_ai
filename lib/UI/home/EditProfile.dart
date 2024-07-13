@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:learnai/UI/home/Home.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class EditProfile extends StatefulWidget {
@@ -133,7 +134,7 @@ class _EditProfileState extends State<EditProfile> {
                         labelText: 'Username',
                         border: OutlineInputBorder(),
                         labelStyle: GoogleFonts.poppins(
-                            color: Color(0xff1ED760),
+                            color: primary,
                             fontWeight: FontWeight.w500,
                             fontSize: 17.sp),
                       ),

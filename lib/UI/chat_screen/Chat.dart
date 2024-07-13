@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:learnai/Widgets/AppBar.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -141,7 +142,7 @@ class _ChatPageState extends State<ChatPage> {
     final isMe = message['sender'] == 'user';
     final messageAlign =
         isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
-    final messageColor = isMe ? Color(0xff1ED760) : Colors.grey[300];
+    final messageColor = isMe ? primary : Colors.grey[300];
 
     return Column(
       crossAxisAlignment: messageAlign,
@@ -232,7 +233,7 @@ class _ChatPageState extends State<ChatPage> {
             child: Icon(
               Icons.send,
               size: 22.sp,
-              color: Color(0xff1ED760),
+              color: primary,
             ),
           ),
         ),

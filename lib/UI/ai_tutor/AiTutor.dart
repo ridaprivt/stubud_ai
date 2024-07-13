@@ -33,6 +33,12 @@ class _AiTutorState extends State<AiTutor> {
     _initializeData();
   }
 
+  @override
+  void dispose() {
+    _stopSpeaking();
+    super.dispose();
+  }
+
   bool subscription = true;
 
   Future<void> _initializeData() async {
@@ -60,7 +66,10 @@ class _AiTutorState extends State<AiTutor> {
       setState(() => _isSpeaking = true);
     });
     _flutterTts.setCompletionHandler(() {
-      setState(() => _isSpeaking = false);
+      setState(() {
+        _isSpeaking = false;
+        _isPaused = false; // Reset pause state on completion
+      });
     });
     _flutterTts.setPauseHandler(() {
       setState(() => _isSpeaking = false);
@@ -68,20 +77,6 @@ class _AiTutorState extends State<AiTutor> {
     _flutterTts.setContinueHandler(() {
       setState(() => _isSpeaking = true);
     });
-  }
-
-  Future<void> _toggleSpeaking() async {
-    if (_isSpeaking && !_isPaused) {
-      await _flutterTts.pause();
-      setState(() {
-        _isPaused = true;
-      });
-    } else {
-      await _flutterTts.speak(bot);
-      setState(() {
-        _isPaused = false;
-      });
-    }
   }
 
   Future<void> _startListening() async {
@@ -140,6 +135,28 @@ class _AiTutorState extends State<AiTutor> {
     }
   }
 
+  void _toggleSpeaking() async {
+    if (_isSpeaking && !_isPaused) {
+      await _flutterTts.pause();
+      setState(() {
+        _isPaused = true;
+      });
+    } else {
+      await _flutterTts.speak(bot);
+      setState(() {
+        _isPaused = false;
+      });
+    }
+  }
+
+  void _stopSpeaking() async {
+    await _flutterTts.stop();
+    setState(() {
+      _isSpeaking = false;
+      _isPaused = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -172,30 +189,6 @@ class _AiTutorState extends State<AiTutor> {
                 height: 27.h,
               ),
             ),
-            // SizedBox(height: 5.h),
-            // Container(
-            //   width: 80.w,
-            //   padding: EdgeInsets.symmetric(horizontal: 15.sp),
-            //   decoration: BoxDecoration(
-            //       borderRadius: BorderRadius.circular(20.sp),
-            //       border: Border.all(color: Colors.black, width: 5.sp)),
-            //   child: TextField(
-            //       maxLines: 6,
-            //       controller: prompt,
-            //       style: GoogleFonts.poppins(
-            //           color: Colors.black,
-            //           fontSize: 16.sp,
-            //           fontWeight: FontWeight.w500),
-            //       decoration: InputDecoration(
-            //         isDense: true,
-            //         hintText: 'Enter your text',
-            //         hintStyle: GoogleFonts.poppins(
-            //             color: Colors.black,
-            //             fontSize: 16.sp,
-            //             fontWeight: FontWeight.w500),
-            //         border: InputBorder.none,
-            //       )),
-            // ),
             SizedBox(height: 8.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -220,28 +213,24 @@ class _AiTutorState extends State<AiTutor> {
                   ),
                 ),
                 InkWell(
-                  onTap: _toggleSpeaking,
+                  onTap: _isSpeaking || _isPaused
+                      ? _stopSpeaking
+                      : _toggleSpeaking,
                   child: Container(
                     height: 8.h,
                     width: 35.w,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(15.sp),
-                      color: _isPaused
+                      color: _isSpeaking || _isPaused
                           ? const Color.fromARGB(255, 196, 54, 43)
                           : const Color.fromARGB(255, 76, 76, 76),
                     ),
-                    child: _isSpeaking
-                        ? Icon(
-                            Icons.pause,
-                            color: Color(0xff1ED760),
-                            size: 24.sp,
-                          )
-                        : Icon(
-                            _isPaused ? Icons.play_arrow : Icons.volume_up,
-                            color: Colors.white,
-                            size: 24.sp,
-                          ),
+                    child: Icon(
+                      _isSpeaking || _isPaused ? Icons.stop : Icons.volume_up,
+                      color: Colors.white,
+                      size: 24.sp,
+                    ),
                   ),
                 ),
               ],

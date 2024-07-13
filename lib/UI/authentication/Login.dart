@@ -7,6 +7,7 @@ import 'package:learnai/UI/authentication/SetUp.dart';
 import 'package:learnai/UI/authentication/SignUp.dart';
 import 'package:learnai/UI/authentication/UserInfo.dart';
 import 'package:learnai/UI/home/Home.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -31,7 +32,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
-      backgroundColor: Color(0xff1ED760),
+      backgroundColor: primary,
       body: ListView(
         children: [
           Image.asset('assets/bg.png'),
@@ -77,7 +78,7 @@ class _LoginState extends State<Login> {
                         minWidth: double.infinity,
                         height: 6.h,
                         onPressed: () => LoginWithEmail(),
-                        color: Color(0xff1ED760),
+                        color: primary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15.sp)),
@@ -375,8 +376,8 @@ class _LoginState extends State<Login> {
               decoration: InputDecoration(
                 contentPadding:
                     EdgeInsets.symmetric(vertical: 16.sp, horizontal: 10.sp),
-                focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xff1ED760))),
+                focusedBorder:
+                    OutlineInputBorder(borderSide: BorderSide(color: primary)),
                 enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.grey.shade400)),
                 border: OutlineInputBorder(

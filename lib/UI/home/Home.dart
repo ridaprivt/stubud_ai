@@ -12,6 +12,7 @@ import 'package:learnai/UI/quiz/Quiz.dart';
 import 'package:learnai/UI/subject/Subject.dart';
 import 'package:learnai/Widgets/AppBar.dart';
 import 'package:learnai/Widgets/QuizWidget.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -357,7 +358,7 @@ class _HomeState extends State<Home> {
                   width: double.infinity,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20.sp),
-                      color: Color(0xff1ED760)),
+                      color: primary),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -412,40 +413,40 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-}
 
-subjectWidget(String name) {
-  return InkWell(
-    onTap: () {
-      Get.to(() => Subject(subjectName: name));
-    },
-    child: Container(
-      padding: EdgeInsets.all(10.sp),
-      margin: EdgeInsets.only(left: 15.sp),
-      width: 47.sp,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey, width: 3.sp),
-        borderRadius: BorderRadius.circular(20.sp),
+  subjectWidget(String name) {
+    return InkWell(
+      onTap: () {
+        Get.to(() => Subject(subjectName: name));
+      },
+      child: Container(
+        padding: EdgeInsets.all(10.sp),
+        margin: EdgeInsets.only(left: 15.sp),
+        width: 47.sp,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey, width: 3.sp),
+          borderRadius: BorderRadius.circular(20.sp),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/sub.jpg',
+              width: 37.sp,
+              height: 37.sp,
+            ),
+            Text(
+              name,
+              style: GoogleFonts.poppins(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 15.sp),
+            ),
+          ],
+        ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/sub.jpg',
-            width: 37.sp,
-            height: 37.sp,
-          ),
-          Text(
-            name,
-            style: GoogleFonts.poppins(
-                color: Colors.black,
-                fontWeight: FontWeight.w500,
-                fontSize: 15.sp),
-          ),
-        ],
-      ),
-    ),
-  );
+    );
+  }
 }
 
 class InterestingFactCard extends StatelessWidget {

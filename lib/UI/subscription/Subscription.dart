@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class Subscription extends StatefulWidget {
@@ -35,7 +36,7 @@ class _SubscriptionState extends State<Subscription> {
                       color: Colors.white,
                       child: Icon(
                         Icons.arrow_back,
-                        color: Color(0xff1ED760),
+                        color: primary,
                         size: 23.sp,
                       )),
                 ),
@@ -51,7 +52,7 @@ class _SubscriptionState extends State<Subscription> {
                 'Interesting facts',
                 'AI tutor for advanced training',
               ],
-              backgroundColor: const Color(0xff1ED760),
+              backgroundColor: primary,
               textColor: Colors.black,
             ),
             SizedBox(height: 2.h),

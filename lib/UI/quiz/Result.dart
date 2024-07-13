@@ -3,8 +3,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:learnai/UI/home/Home.dart';
 import 'package:learnai/Widgets/AppBar.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class Result extends StatefulWidget {
@@ -20,6 +18,32 @@ class Result extends StatefulWidget {
 }
 
 class _ResultState extends State<Result> {
+  late String feedbackMessage;
+  late String feedbackTitle;
+
+  @override
+  void initState() {
+    super.initState();
+    _calculateFeedback();
+  }
+
+  void _calculateFeedback() {
+    int total = int.parse(widget.totalMarks);
+    int obtained = int.parse(widget.obtainedMarks);
+    double percentage = (obtained / total) * 100;
+
+    if (percentage >= 80) {
+      feedbackTitle = 'Perfect Exercise';
+      feedbackMessage = 'You did a great job';
+    } else if (percentage >= 50) {
+      feedbackTitle = 'Good Job';
+      feedbackMessage = 'You did well, but there is room for improvement';
+    } else {
+      feedbackTitle = 'Needs Improvement';
+      feedbackMessage = 'Keep practicing and you will get better';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -38,7 +62,7 @@ class _ResultState extends State<Result> {
             ),
             SizedBox(height: 4.h),
             Text(
-              'Perfect Exercise',
+              feedbackTitle,
               style: GoogleFonts.poppins(
                 color: Colors.amber,
                 fontWeight: FontWeight.bold,
@@ -47,7 +71,7 @@ class _ResultState extends State<Result> {
             ),
             SizedBox(height: 0.5.h),
             Text(
-              'You did a great job',
+              feedbackMessage,
               style: GoogleFonts.poppins(
                 color: const Color.fromARGB(255, 0, 0, 0),
                 fontWeight: FontWeight.w500,
@@ -61,10 +85,10 @@ class _ResultState extends State<Result> {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(15.sp),
-                color: Color.fromARGB(255, 25, 180, 79),
+                color: const Color.fromARGB(255, 25, 180, 79),
               ),
               child: Text(
-                widget.obtainedMarks + '/' + widget.totalMarks,
+                '${widget.obtainedMarks}/${widget.totalMarks}',
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                   height: 3.sp,
@@ -96,7 +120,7 @@ class _ResultState extends State<Result> {
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

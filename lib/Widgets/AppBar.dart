@@ -2,12 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'package:learnai/UI/home/Profile.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   final UserController userController = Get.put(UserController());
+  final RxBool isNotificationEnabled = false.obs;
+
+  MyAppBar() {
+    _loadNotificationState();
+  }
+
+  Future<void> _loadNotificationState() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    isNotificationEnabled.value =
+        prefs.getBool('notification_enabled') ?? false;
+  }
+
+  Future<void> _toggleNotification() async {
+    isNotificationEnabled.value = !isNotificationEnabled.value;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('notification_enabled', isNotificationEnabled.value);
+  }
 
   @override
   Size get preferredSize => Size.fromHeight(15.h);
@@ -17,7 +36,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
     return Obx(() {
       if (userController.isLoading.value) {
         return AppBar(
-          backgroundColor: Color(0xff1ED760),
+          backgroundColor: primary,
           toolbarHeight: 15.h,
           title: Center(
             child: CircularProgressIndicator(),
@@ -28,7 +47,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
       Map<String, dynamic> userData = userController.userData.value;
 
       return AppBar(
-        backgroundColor: Color(0xff1ED760),
+        backgroundColor: primary,
         toolbarHeight: 15.h,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -52,30 +71,55 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             SizedBox(width: 3.w),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  userData['userName'] ?? '',
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18.sp,
+            InkWell(
+              onTap: () {
+                Get.to(Profile());
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    userData['userName'] ?? '',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18.sp,
+                    ),
                   ),
-                ),
-                SizedBox(height: 0.5.h),
-                Text(
-                  userData['email'] ?? '',
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 15.sp,
+                  SizedBox(height: 0.5.h),
+                  Text(
+                    userData['email'] ?? '',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14.sp,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             Spacer(),
-            Image.asset(
-              'assets/bell.png',
-              height: 6.h,
+            InkWell(
+              onTap: () async {
+                await _toggleNotification();
+              },
+              child: Obx(() {
+                return isNotificationEnabled.value
+                    ? Container(
+                        height: 6.h,
+                        width: 6.h,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.red,
+                        ),
+                        child: Icon(
+                          Icons.notifications_outlined,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Image.asset(
+                        'assets/bell.png',
+                        height: 6.h,
+                      );
+              }),
             ),
           ],
         ),

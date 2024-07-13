@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:learnai/UI/authentication/Login.dart';
 import 'package:learnai/UI/authentication/SetUp.dart';
 import 'package:learnai/UI/home/Home.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
@@ -132,7 +133,7 @@ class _UserInfoState extends State<MyUserInfo> {
                               color: Colors.white,
                               child: Icon(
                                 Icons.arrow_back,
-                                color: Color(0xff1ED760),
+                                color: primary,
                                 size: 23.sp,
                               )),
                         ),
@@ -174,10 +175,10 @@ class _UserInfoState extends State<MyUserInfo> {
                             labelText: 'Full Name',
                             prefixIcon: Icon(
                               Icons.person,
-                              color: Color(0xff1ED760),
+                              color: primary,
                             ),
                             labelStyle: GoogleFonts.poppins(
-                                color: Color(0xff1ED760),
+                                color: primary,
                                 fontWeight: FontWeight.w500,
                                 fontSize: 17.sp),
                           ),

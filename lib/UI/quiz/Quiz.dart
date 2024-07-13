@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:learnai/UI/home/Home.dart';
 import 'package:learnai/UI/quiz/Result.dart';
 import 'package:learnai/Widgets/AppBar.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
@@ -266,7 +267,7 @@ class _QuizState extends State<Quiz> {
                               currentStep: currentIndex,
                               size: 15,
                               padding: 0,
-                              selectedColor: const Color(0xff1ED760),
+                              selectedColor: primary,
                               unselectedColor:
                                   const Color.fromARGB(255, 232, 232, 232),
                             ),
