@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:learnai/In%20App%20Purchase/PurchaseApi.dart';
 import 'package:learnai/UI/authentication/Login.dart';
 import 'package:learnai/UI/authentication/SetUp.dart';
 import 'package:learnai/UI/authentication/UserInfo.dart';
@@ -15,7 +16,9 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
   MobileAds.instance.initialize();
+  await PurchaseApi.init();
   Get.put(GlobalController());
   runApp(MyApp());
 }
