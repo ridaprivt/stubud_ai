@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'package:learnai/UI/home/Profile.dart';
@@ -36,12 +37,21 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
     return Obx(() {
       if (userController.isLoading.value) {
         return AppBar(
-          backgroundColor: globalController.primaryColor.value,
-          toolbarHeight: 15.h,
-          title: Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
+            backgroundColor: globalController.primaryColor.value,
+            toolbarHeight: 15.h,
+            title: SpinKitCircle(
+              size: 35.sp,
+              itemBuilder: (BuildContext context, int index) {
+                return DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: index.isEven
+                        ? globalController.primaryColor.value
+                        : Colors.white,
+                  ),
+                );
+              },
+            ));
       }
 
       Map<String, dynamic> userData = userController.userData.value;

@@ -79,6 +79,24 @@ class _AiTutorState extends State<AiTutor> {
     });
   }
 
+  Future<void> _toggleListeningAndSpeaking() async {
+    if (_isListening) {
+      _stopListening();
+    } else if (_isSpeaking && !_isPaused) {
+      await _flutterTts.pause();
+      setState(() {
+        _isPaused = true;
+      });
+    } else if (_isPaused) {
+      await _flutterTts.speak(bot);
+      setState(() {
+        _isPaused = false;
+      });
+    } else {
+      _startListening();
+    }
+  }
+
   Future<void> _startListening() async {
     bool available = await _speechToText.initialize();
     if (available) {
@@ -135,20 +153,6 @@ class _AiTutorState extends State<AiTutor> {
     }
   }
 
-  void _toggleSpeaking() async {
-    if (_isSpeaking && !_isPaused) {
-      await _flutterTts.pause();
-      setState(() {
-        _isPaused = true;
-      });
-    } else {
-      await _flutterTts.speak(bot);
-      setState(() {
-        _isPaused = false;
-      });
-    }
-  }
-
   void _stopSpeaking() async {
     await _flutterTts.stop();
     setState(() {
@@ -190,50 +194,28 @@ class _AiTutorState extends State<AiTutor> {
               ),
             ),
             SizedBox(height: 8.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                InkWell(
-                  onTap: _isListening ? _stopListening : _startListening,
-                  child: Container(
-                    height: 8.h,
-                    width: 35.w,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15.sp),
-                      color: _isListening
-                          ? const Color.fromARGB(255, 196, 54, 43)
-                          : const Color.fromARGB(255, 76, 76, 76),
-                    ),
-                    child: Icon(
-                      _isListening ? Icons.mic_off : Icons.mic,
-                      color: Colors.white,
-                      size: 24.sp,
-                    ),
+            Center(
+              child: InkWell(
+                onTap: _toggleListeningAndSpeaking,
+                child: Container(
+                  height: 8.h,
+                  width: 35.w,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15.sp),
+                    color: _isListening || _isSpeaking || _isPaused
+                        ? const Color.fromARGB(255, 196, 54, 43)
+                        : const Color.fromARGB(255, 76, 76, 76),
+                  ),
+                  child: Icon(
+                    _isListening
+                        ? Icons.mic_off
+                        : (_isSpeaking || _isPaused ? Icons.stop : Icons.mic),
+                    color: Colors.white,
+                    size: 24.sp,
                   ),
                 ),
-                InkWell(
-                  onTap: _isSpeaking || _isPaused
-                      ? _stopSpeaking
-                      : _toggleSpeaking,
-                  child: Container(
-                    height: 8.h,
-                    width: 35.w,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15.sp),
-                      color: _isSpeaking || _isPaused
-                          ? const Color.fromARGB(255, 196, 54, 43)
-                          : const Color.fromARGB(255, 76, 76, 76),
-                    ),
-                    child: Icon(
-                      _isSpeaking || _isPaused ? Icons.stop : Icons.volume_up,
-                      color: Colors.white,
-                      size: 24.sp,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
         ),

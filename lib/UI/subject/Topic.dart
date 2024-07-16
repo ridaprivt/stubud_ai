@@ -5,6 +5,7 @@ import 'package:learnai/Google%20Ads/BannerAd.dart';
 import 'package:learnai/Google%20Ads/InterstitialAd.dart';
 import 'package:learnai/UI/subject/TopicDetails.dart';
 import 'package:learnai/Widgets/AppBar.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -114,70 +115,72 @@ class _TopicState extends State<Topic> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: MyAppBar(),
-      body: ListView(
-        padding: EdgeInsets.all(16.0),
-        children: [
-          if (!subscription)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.sp),
+    return SafeArea(
+      child: Scaffold(
+        appBar: MyAppBar(),
+        body: ListView(
+          padding: EdgeInsets.all(16.0),
+          children: [
+            if (!subscription)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10.sp),
+                child: Column(
+                  children: [
+                    AdsServices().MyAd(context),
+                    SizedBox(height: 3.h),
+                  ],
+                ),
+              ),
+            Container(
+              padding: EdgeInsets.all(17.sp),
+              margin: EdgeInsets.symmetric(vertical: 10.sp),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(17.sp),
+                color: globalController.primaryColor.value.withOpacity(0.5),
+              ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AdsServices().MyAd(context),
-                  SizedBox(height: 3.h),
+                  Text(
+                    widget.topic,
+                    style: GoogleFonts.poppins(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 1.h),
+                  Text(
+                    widget.topicIntro,
+                    style: GoogleFonts.poppins(
+                      fontSize: 15.sp,
+                    ),
+                  ),
                 ],
               ),
             ),
-          Container(
-            padding: EdgeInsets.all(17.sp),
-            margin: EdgeInsets.symmetric(vertical: 10.sp),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(17.sp),
-              color: Color(0xffC8EE85),
+            SizedBox(height: 2.h),
+            Text(
+              'Topics',
+              style: GoogleFonts.poppins(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.topic,
-                  style: GoogleFonts.poppins(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 1.h),
-                Text(
-                  widget.topicIntro,
-                  style: GoogleFonts.poppins(
-                    fontSize: 15.sp,
-                  ),
-                ),
-              ],
+            SizedBox(height: 1.h),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: widget.subTopics.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding:
+                      EdgeInsets.symmetric(vertical: 10.sp, horizontal: 3.sp),
+                  child: subTopic(index),
+                );
+              },
             ),
-          ),
-          SizedBox(height: 2.h),
-          Text(
-            'Topics',
-            style: GoogleFonts.poppins(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 1.h),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: widget.subTopics.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding:
-                    EdgeInsets.symmetric(vertical: 10.sp, horizontal: 3.sp),
-                child: subTopic(index),
-              );
-            },
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

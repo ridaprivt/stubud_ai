@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:learnai/UI/authentication/Login.dart';
+import 'package:learnai/UI/home/Badges.dart';
 import 'package:learnai/UI/home/EditProfile.dart';
 import 'package:learnai/UI/home/Home.dart';
 import 'package:learnai/UI/home/Settings.dart';
@@ -26,6 +28,7 @@ class _ProfileState extends State<Profile> {
   TextEditingController gradeController = TextEditingController();
   bool post = false;
   bool isGreen = true;
+  String badge = '';
 
   @override
   void initState() {
@@ -98,8 +101,6 @@ class _ProfileState extends State<Profile> {
       print('Total quizzes processed: $quizCount');
       print('Total score: $totalScore');
       print('Total marks: $totalMarks');
-
-      String badge = '';
 
       double averageScore = (totalScore / totalMarks) * 100;
       if (averageScore >= 90) {
@@ -234,7 +235,21 @@ class _ProfileState extends State<Profile> {
       future: _getUserData(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return SafeArea(
+              child: Scaffold(
+                  body: SpinKitCircle(
+            size: 35.sp,
+            itemBuilder: (BuildContext context, int index) {
+              return DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: index.isEven
+                      ? globalController.primaryColor.value
+                      : Colors.white,
+                ),
+              );
+            },
+          )));
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data == null) {
@@ -366,43 +381,50 @@ class _ProfileState extends State<Profile> {
                               ),
                             ),
                             SizedBox(height: 1.h),
-                            Container(
-                              padding: EdgeInsets.all(15.sp),
-                              margin: EdgeInsets.symmetric(horizontal: 15.sp),
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20.sp),
-                                  color: globalController.primaryColor.value),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text('BADGES',
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.poppins(
-                                            height: 5.sp,
-                                            fontSize: 20.sp,
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.bold,
-                                          )),
-                                      const Spacer(),
-                                      const Icon(Icons.arrow_forward)
-                                    ],
-                                  ),
-                                  SizedBox(height: 2.h),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      if (badge == 'Quick Learner')
-                                        badgeWidget('a', 'Quick Learner'),
-                                      if (badge == 'Night Owl')
-                                        badgeWidget('b', 'Night Owl'),
-                                      if (badge == 'High Achiever')
-                                        badgeWidget('c', 'High Achiever'),
-                                    ],
-                                  ),
-                                ],
+                            InkWell(
+                              onTap: () {
+                                Get.to(Badges(
+                                  unlockedBadgeName: badge,
+                                ));
+                              },
+                              child: Container(
+                                padding: EdgeInsets.all(15.sp),
+                                margin: EdgeInsets.symmetric(horizontal: 15.sp),
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20.sp),
+                                    color: globalController.primaryColor.value),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text('BADGES',
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.poppins(
+                                              height: 5.sp,
+                                              fontSize: 20.sp,
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.bold,
+                                            )),
+                                        const Spacer(),
+                                        const Icon(Icons.arrow_forward)
+                                      ],
+                                    ),
+                                    SizedBox(height: 2.h),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        if (badge == 'Quick Learner')
+                                          badgeWidget('a', 'Quick Learner'),
+                                        if (badge == 'Night Owl')
+                                          badgeWidget('b', 'Night Owl'),
+                                        if (badge == 'High Achiever')
+                                          badgeWidget('c', 'High Achiever'),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                             SizedBox(height: 1.h),

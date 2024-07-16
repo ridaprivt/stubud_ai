@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:learnai/UI/home/Home.dart';
 import 'package:learnai/Widgets/CustomColumn.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -134,7 +135,7 @@ class _SetUpState extends State<SetUp> {
                               style: GoogleFonts.poppins(fontSize: 16.sp)),
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
-                        backgroundColor: Colors.green,
+                        backgroundColor: globalController.primaryColor.value,
                         padding: EdgeInsets.symmetric(
                             horizontal: 30.sp, vertical: 15.sp),
                       ),

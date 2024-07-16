@@ -10,6 +10,7 @@ import 'package:learnai/Widgets/AppBar.dart';
 import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class MySettings extends StatefulWidget {
   @override
@@ -230,6 +231,34 @@ class _MySettingsState extends State<MySettings> {
     );
   }
 
+  void _showColorPicker(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select Theme Color'),
+          content: SingleChildScrollView(
+            child: BlockPicker(
+              pickerColor: globalController.primaryColor.value,
+              onColorChanged: (color) {
+                globalController.setPrimaryColor(color);
+              },
+            ),
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              child: Text('Done'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Get.offAll(Home());
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -247,7 +276,7 @@ class _MySettingsState extends State<MySettings> {
                   Row(
                     children: [
                       Text(
-                        'Change Theme'.tr,
+                        'Theme'.tr,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 17.sp,
                           fontWeight: FontWeight.w400,
@@ -256,13 +285,24 @@ class _MySettingsState extends State<MySettings> {
                       ),
                       Spacer(),
                       Obx(
-                        () => CupertinoSwitch(
-                          value: true,
-                          activeColor: globalController.primaryColor.value,
-                          onChanged: (value) async {
-                            globalController.togglePrimaryColor();
-                            Get.offAll(Home());
+                        () => TextButton(
+                          style: ButtonStyle(
+                            side: MaterialStateProperty.all(
+                              BorderSide(
+                                  color: globalController.primaryColor.value,
+                                  width: 2.0),
+                            ),
+                            foregroundColor: MaterialStateProperty.all(
+                                globalController.primaryColor.value),
+                          ),
+                          onPressed: () async {
+                            _showColorPicker(context);
                           },
+                          child: Text(
+                            'Change',
+                            style: TextStyle(
+                                color: globalController.primaryColor.value),
+                          ),
                         ),
                       ),
                     ],

@@ -34,19 +34,22 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return ResponsiveSizer(builder: (context, orientation, screenType) {
-      return GetMaterialApp(
-        theme: ThemeData(
-          scaffoldBackgroundColor: Colors.white,
-          pageTransitionsTheme: PageTransitionsTheme(
-            builders: {
-              TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-              TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-            },
+      return Obx(() {
+        return GetMaterialApp(
+          theme: ThemeData(
+            primaryColor: globalController.primaryColor.value,
+            scaffoldBackgroundColor: Colors.white,
+            pageTransitionsTheme: PageTransitionsTheme(
+              builders: {
+                TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+                TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+              },
+            ),
           ),
-        ),
-        debugShowCheckedModeBanner: false,
-        home: SplashScreen(),
-      );
+          debugShowCheckedModeBanner: false,
+          home: SplashScreen(),
+        );
+      });
     });
   }
 }
@@ -73,13 +76,9 @@ class GlobalController extends GetxController {
     await prefs.setInt('primaryColor', color.value);
   }
 
-  void togglePrimaryColor() {
-    if (primaryColor.value == Color(0xff1ED760)) {
-      primaryColor.value = Color.fromARGB(255, 170, 128, 198);
-    } else {
-      primaryColor.value = Color(0xff1ED760);
-    }
-    _savePrimaryColor(primaryColor.value);
+  void setPrimaryColor(Color color) {
+    primaryColor.value = color;
+    _savePrimaryColor(color);
   }
 }
 

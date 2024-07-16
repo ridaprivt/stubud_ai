@@ -8,6 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:learnai/UI/authentication/Login.dart';
 import 'package:learnai/UI/home/Home.dart';
 import 'package:learnai/UI/subscription/Subscription.dart';
+import 'package:learnai/main.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,7 +16,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class PurchaseApi {
-  static const _apiKey = 'goog_eEfECMOmztnUtcygdxFrfCUbbxF';
+  static const _apiKey = 'goog_vgyYXYNQsFnZWBOtvGFpBaHvtzw';
 
   static Future init() async {
     await Purchases.setLogLevel(LogLevel.debug);
@@ -142,7 +143,7 @@ Future<void> subscribed() async {
     Get.snackbar(
       'Success',
       'You have successfully subscribed to Premium.',
-      backgroundColor: Colors.green,
+      backgroundColor: globalController.primaryColor.value,
       colorText: Colors.white,
     );
 

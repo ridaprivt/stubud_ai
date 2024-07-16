@@ -14,6 +14,7 @@ import 'package:learnai/UI/subject/Scores.dart';
 import 'package:learnai/UI/subject/Topic.dart';
 import 'package:learnai/Widgets/AppBar.dart';
 import 'package:learnai/Widgets/QuizWidget.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -88,8 +89,10 @@ class _SubjectState extends State<Subject> {
                     alignment: Alignment.topCenter,
                     padding: EdgeInsets.all(17.sp),
                     decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(17.sp),
-                        color: Color(0xffC8EE85)),
+                      borderRadius: BorderRadius.circular(17.sp),
+                      color:
+                          globalController.primaryColor.value.withOpacity(0.5),
+                    ),
                     child: Row(
                       children: [
                         Container(
@@ -300,6 +303,14 @@ class _SubjectState extends State<Subject> {
                   margin: EdgeInsets.only(right: 2.w),
                   width: 50.sp,
                   decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        globalController.primaryColor.value.withOpacity(0.34),
+                        Color.fromARGB(97, 155, 39, 176)
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     border: Border.all(color: Colors.grey, width: 3.sp),
                     borderRadius: BorderRadius.circular(20.sp),
                   ),
@@ -439,6 +450,15 @@ class _SubjectState extends State<Subject> {
                         margin: EdgeInsets.only(right: 2.w),
                         width: 50.sp,
                         decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              globalController.primaryColor.value
+                                  .withOpacity(0.34),
+                              Color.fromARGB(97, 155, 39, 176)
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           border: Border.all(color: Colors.grey, width: 3.sp),
                           borderRadius: BorderRadius.circular(20.sp),
                         ),

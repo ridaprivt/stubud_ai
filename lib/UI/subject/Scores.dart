@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:learnai/UI/subject/IncorrectAnswers.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
@@ -119,7 +120,9 @@ class _ScoresState extends State<Scores> {
                     return DecoratedBox(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: index.isEven ? Colors.green : Colors.white,
+                        color: index.isEven
+                            ? globalController.primaryColor.value
+                            : Colors.white,
                       ),
                     );
                   },

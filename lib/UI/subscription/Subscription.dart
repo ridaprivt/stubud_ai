@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:learnai/In%20App%20Purchase/PurchaseApi.dart';
 import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
@@ -43,17 +44,22 @@ class _SubscriptionState extends State<Subscription> {
               ],
             ),
             SizedBox(height: 17.h),
-            PlanCard(
-              title: 'Subscription Plan',
-              price: '\$04.99/- per month',
-              features: [
-                'Pop Quiz of last topic you studied',
-                'Unlimited document scans',
-                'Interesting facts',
-                'AI tutor for advanced training',
-              ],
-              backgroundColor: globalController.primaryColor.value,
-              textColor: Colors.black,
+            InkWell(
+              onTap: () {
+                premiumPurchase();
+              },
+              child: PlanCard(
+                title: 'Subscription Plan',
+                price: '\$04.99/- per month',
+                features: [
+                  'Pop Quiz of last topic you studied',
+                  'Unlimited document scans',
+                  'Interesting facts',
+                  'AI tutor for advanced training',
+                ],
+                backgroundColor: globalController.primaryColor.value,
+                textColor: Colors.black,
+              ),
             ),
             SizedBox(height: 2.h),
             PlanCard(
@@ -65,7 +71,8 @@ class _SubscriptionState extends State<Subscription> {
                 'Progress tracking',
                 'Online connectivity',
               ],
-              backgroundColor: Color.fromARGB(60, 30, 215, 95),
+              backgroundColor:
+                  globalController.primaryColor.value.withOpacity(0.2),
               textColor: Colors.black,
               icon: Icons.check_circle,
             ),
@@ -73,6 +80,17 @@ class _SubscriptionState extends State<Subscription> {
         ),
       )),
     );
+  }
+
+  premiumPurchase() async {
+    final offerings = await PurchaseApi.fetchOffers();
+    if (offerings.isEmpty) {
+      print('No Plans Found');
+    } else {
+      final packages = offerings;
+      bool check = false;
+      await PurchaseApi.purchasePackage(packages[0]);
+    }
   }
 }
 

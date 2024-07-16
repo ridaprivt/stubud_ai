@@ -115,7 +115,7 @@ class _EditProfileState extends State<EditProfile> {
                       onTap: _pickImage,
                       child: CircleAvatar(
                         radius: 40.sp,
-                        backgroundColor: Colors.green,
+                        backgroundColor: globalController.primaryColor.value,
                         backgroundImage: _imageFile != null
                             ? FileImage(_imageFile!)
                             : (_profileImageUrl != null
@@ -149,7 +149,7 @@ class _EditProfileState extends State<EditProfile> {
                                 style: GoogleFonts.poppins(fontSize: 18.sp)),
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
-                          backgroundColor: Colors.green,
+                          backgroundColor: globalController.primaryColor.value,
                           padding: EdgeInsets.symmetric(
                               horizontal: 30.sp, vertical: 14.sp),
                         ),

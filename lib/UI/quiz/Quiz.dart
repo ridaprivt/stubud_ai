@@ -238,7 +238,9 @@ class _QuizState extends State<Quiz> {
                     return DecoratedBox(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: index.isEven ? Colors.green : Colors.white,
+                        color: index.isEven
+                            ? globalController.primaryColor.value
+                            : Colors.white,
                       ),
                     );
                   },

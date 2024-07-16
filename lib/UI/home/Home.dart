@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
@@ -228,7 +229,7 @@ class _HomeState extends State<Home> {
                         ),
                         SizedBox(height: 1.h),
                         Text(
-                          'Why buy loads of stationary\nand books when you have LearnAi',
+                          'Why buy loads of stationary\nand books when you have Stubud AI',
                           style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontWeight: FontWeight.w500,
@@ -263,10 +264,19 @@ class _HomeState extends State<Home> {
               SizedBox(height: 2.h),
               load
                   ? Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.grey,
-                      ),
-                    )
+                      child: SpinKitCircle(
+                      size: 35.sp,
+                      itemBuilder: (BuildContext context, int index) {
+                        return DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: index.isEven
+                                ? globalController.primaryColor.value
+                                : Colors.white,
+                          ),
+                        );
+                      },
+                    ))
                   : Container(
                       height: 47.sp,
                       child: ListView.builder(

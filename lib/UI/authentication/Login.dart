@@ -8,6 +8,7 @@ import 'package:learnai/UI/authentication/SignUp.dart';
 import 'package:learnai/UI/authentication/UserInfo.dart';
 import 'package:learnai/UI/home/Home.dart';
 import 'package:learnai/main.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -178,6 +179,7 @@ class _LoginState extends State<Login> {
           await prefs.setString('userName', user.displayName ?? '');
           await prefs.setString('userEmail', user.email ?? '');
           await prefs.setString('userPhotoUrl', user.photoURL ?? '');
+          await Purchases.logIn(user.uid);
 
           if (!userExists) {
             await FirebaseFirestore.instance
@@ -198,7 +200,7 @@ class _LoginState extends State<Login> {
           Get.snackbar(
             'Success',
             'Sign In with Google Successful',
-            backgroundColor: Colors.green,
+            backgroundColor: globalController.primaryColor.value,
             colorText: Colors.white,
           );
         } else {
@@ -308,7 +310,7 @@ class _LoginState extends State<Login> {
           Get.snackbar(
             'Success',
             'Sign In Successful',
-            backgroundColor: Colors.green,
+            backgroundColor: globalController.primaryColor.value,
             colorText: Colors.white,
           );
         } else {
@@ -334,7 +336,7 @@ class _LoginState extends State<Login> {
           Get.snackbar(
             'Success',
             'Sign In Successful',
-            backgroundColor: Colors.green,
+            backgroundColor: globalController.primaryColor.value,
             colorText: Colors.white,
           );
         }

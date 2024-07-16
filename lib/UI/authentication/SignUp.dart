@@ -252,7 +252,7 @@ class _SignUpState extends State<SignUp> {
         Get.snackbar(
           'Success',
           'Please check your email to verify your account',
-          backgroundColor: Colors.green,
+          backgroundColor: globalController.primaryColor.value,
           colorText: Colors.white,
         );
       }

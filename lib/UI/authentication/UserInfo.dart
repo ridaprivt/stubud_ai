@@ -195,7 +195,7 @@ class _UserInfoState extends State<MyUserInfo> {
                                 style: GoogleFonts.poppins(fontSize: 17.sp)),
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
-                          backgroundColor: Colors.green,
+                          backgroundColor: globalController.primaryColor.value,
                           padding: EdgeInsets.symmetric(
                               horizontal: 30.sp, vertical: 15.sp),
                         ),

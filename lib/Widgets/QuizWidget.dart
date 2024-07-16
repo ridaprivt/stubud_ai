@@ -63,7 +63,7 @@ class _QuizWidgetState extends State<QuizWidget> {
                           fontSize: 30.sp),
                     ),
                     Text(
-                      'Last time you learned about tectonic plates!!\nWanna know how much you grasped from\nour lessons? I bet you’ll do great',
+                      'Wanna know how much you grasped from\nour lessons? I bet you’ll do great',
                       style: GoogleFonts.poppins(
                           color: Colors.black,
                           fontWeight: FontWeight.w500,
