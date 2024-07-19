@@ -202,6 +202,9 @@ class _SubjectState extends State<Subject> {
                   SizedBox(height: 2.h),
                   QuizWidget(
                     subjectName: widget.subjectName,
+                    lastCachedTopic: _cachedTopics.isNotEmpty
+                        ? _cachedTopics.last['topic']
+                        : '',
                   )
                 ])));
   }

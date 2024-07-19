@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:learnai/UI/home/Home.dart';
 import 'package:learnai/Widgets/AppBar.dart';
+import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class Result extends StatefulWidget {
@@ -85,7 +86,7 @@ class _ResultState extends State<Result> {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(15.sp),
-                color: const Color.fromARGB(255, 25, 180, 79),
+                color: globalController.primaryColor.value,
               ),
               child: Text(
                 '${widget.obtainedMarks}/${widget.totalMarks}',

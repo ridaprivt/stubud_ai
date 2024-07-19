@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:learnai/In%20App%20Purchase/PurchaseApi.dart';
+import 'package:learnai/Notifications/FirebaseNotifications.dart';
 import 'package:learnai/UI/authentication/Login.dart';
 import 'package:learnai/UI/authentication/SetUp.dart';
 import 'package:learnai/UI/authentication/UserInfo.dart';
@@ -19,6 +21,21 @@ void main() async {
 
   MobileAds.instance.initialize();
   await PurchaseApi.init();
+
+  NotificationService.initNotification();
+  await FirebaseMessaging.instance.getInitialMessage();
+  await FirebaseMessaging.instance.requestPermission();
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    // Handle foreground messages
+    if (message.notification != null) {
+      NotificationService.showLocalNotification(
+          message.notification!.title ?? '',
+          message.notification!.body ?? '',
+          'payload');
+    }
+  });
+  getToken();
+
   Get.put(GlobalController());
   runApp(MyApp());
 }
@@ -83,3 +100,8 @@ class GlobalController extends GetxController {
 }
 
 final GlobalController globalController = Get.find();
+void getToken() {
+  FirebaseMessaging.instance.getToken().then((value) {
+    print("TOKEN IS :: :: $value");
+  });
+}

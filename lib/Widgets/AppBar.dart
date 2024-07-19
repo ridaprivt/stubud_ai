@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:learnai/Notifications/FirebaseNotifications.dart';
 import 'package:learnai/UI/home/Profile.dart';
 import 'package:learnai/main.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
@@ -11,22 +12,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   final UserController userController = Get.put(UserController());
-  final RxBool isNotificationEnabled = false.obs;
 
   MyAppBar() {
-    _loadNotificationState();
-  }
-
-  Future<void> _loadNotificationState() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    isNotificationEnabled.value =
-        prefs.getBool('notification_enabled') ?? false;
-  }
-
-  Future<void> _toggleNotification() async {
-    isNotificationEnabled.value = !isNotificationEnabled.value;
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setBool('notification_enabled', isNotificationEnabled.value);
+    NotificationService.initNotification();
   }
 
   @override
@@ -107,26 +95,6 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             Spacer(),
-            InkWell(
-              onTap: () async {
-                await _toggleNotification();
-              },
-              child: Obx(() {
-                return Container(
-                  height: 6.h,
-                  width: 6.h,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color:
-                        isNotificationEnabled.value ? Colors.red : Colors.black,
-                  ),
-                  child: Icon(
-                    Icons.notifications_outlined,
-                    color: Colors.white,
-                  ),
-                );
-              }),
-            ),
           ],
         ),
       );

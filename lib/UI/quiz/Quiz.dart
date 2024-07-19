@@ -30,6 +30,7 @@ class _QuizState extends State<Quiz> {
   Timer? countdownTimer;
   int remainingTime = 15;
   bool isLoading = false;
+  bool calculate = false;
 
   @override
   void initState() {
@@ -351,12 +352,22 @@ class _QuizState extends State<Quiz> {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15.sp),
-          color: Color.fromARGB(255, 25, 180, 79),
+          color: globalController.primaryColor.value,
         ),
-        child: isLoading
-            ? CircularProgressIndicator(
-                color: Colors.white,
-              )
+        child: calculate
+            ? Center(
+                child: SpinKitCircle(
+                    size: 35.sp,
+                    itemBuilder: (BuildContext context, int index) {
+                      return DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: index.isEven
+                              ? globalController.primaryColor.value
+                              : Colors.white,
+                        ),
+                      );
+                    }))
             : Text(
                 'View Results',
                 style: GoogleFonts.poppins(
@@ -371,11 +382,18 @@ class _QuizState extends State<Quiz> {
   }
 
   void calculateResults() async {
+    setState(() {
+      calculate = true;
+    });
+
     final prefs = await SharedPreferences.getInstance();
     final userID = prefs.getString('userID');
 
     if (userID == null) {
       showSnackBar("No userID found in SharedPreferences.");
+      setState(() {
+        calculate = false;
+      });
       return;
     }
 
@@ -388,6 +406,9 @@ class _QuizState extends State<Quiz> {
     if (latestQuizNumber == 1) {
       // No quizzes found
       showSnackBar("No quiz found to calculate results.");
+      setState(() {
+        calculate = false;
+      });
       return;
     }
 
@@ -399,6 +420,9 @@ class _QuizState extends State<Quiz> {
 
     if (!quizDataDoc.exists) {
       showSnackBar("Failed to fetch quiz data.");
+      setState(() {
+        calculate = false;
+      });
       return;
     }
 
@@ -433,6 +457,10 @@ class _QuizState extends State<Quiz> {
       obtainedMarks: obtainedMarks.toString(),
       totalMarks: totalMarks.toString(),
     ));
+
+    setState(() {
+      calculate = false;
+    });
   }
 
   Part1() {

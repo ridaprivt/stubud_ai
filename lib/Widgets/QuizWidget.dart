@@ -11,11 +11,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class QuizWidget extends StatefulWidget {
   final String? subjectName;
+  final String lastCachedTopic;
 
-  const QuizWidget({
-    super.key,
-    this.subjectName,
-  });
+  const QuizWidget(
+      {super.key, this.subjectName, required this.lastCachedTopic});
 
   @override
   State<QuizWidget> createState() => _QuizWidgetState();
@@ -29,7 +28,7 @@ class _QuizWidgetState extends State<QuizWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 27.h,
+      height: 32.h,
       padding: EdgeInsets.all(15.sp),
       alignment: Alignment.center,
       width: double.infinity,
@@ -63,18 +62,25 @@ class _QuizWidgetState extends State<QuizWidget> {
                           fontSize: 30.sp),
                     ),
                     Text(
-                      'Wanna know how much you grasped from\nour lessons? I bet you’ll do great',
+                      'Last time you learnt about ${widget.lastCachedTopic}.\n',
                       style: GoogleFonts.poppins(
                           color: Colors.black,
                           fontWeight: FontWeight.w500,
-                          fontSize: 11.5.sp),
+                          fontSize: 12.5.sp),
+                    ),
+                    Text(
+                      'Wanna know how much you grasped from our lessons? I bet you’ll do great',
+                      style: GoogleFonts.poppins(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12.5.sp),
                     ),
                   ],
                 ),
               ),
               Image.asset(
                 'assets/cartoon.png',
-                width: 25.w,
+                width: 32.w,
               )
             ],
           ),
@@ -98,42 +104,17 @@ class _QuizWidgetState extends State<QuizWidget> {
                           ))
                       : Padding(
                           padding: EdgeInsets.symmetric(
-                              horizontal: 13.sp, vertical: 13.sp),
+                              horizontal: 17.sp, vertical: 14.sp),
                           child: Text(
                             'Accept Challenge',
                             style: GoogleFonts.poppins(
                                 color: Colors.white,
                                 height: 3.sp,
                                 fontWeight: FontWeight.w500,
-                                fontSize: 12.sp),
+                                fontSize: 14.sp),
                           ),
                         ),
                 ),
-              ),
-              SizedBox(width: 1.w),
-              Container(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 13.sp, vertical: 13.sp),
-                decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black),
-                    borderRadius: BorderRadius.circular(20.sp)),
-                child: Text(
-                  'Maybe a quick revision?',
-                  style: GoogleFonts.poppins(
-                      color: Colors.black,
-                      height: 3.sp,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12.sp),
-                ),
-              ),
-              SizedBox(width: 2.w),
-              Text(
-                'Wuss Out :(',
-                style: GoogleFonts.poppins(
-                    color: Colors.black,
-                    decoration: TextDecoration.underline,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12.5.sp),
               ),
             ],
           )

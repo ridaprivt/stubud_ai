@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:learnai/Notifications/FirebaseNotifications.dart';
 import 'package:learnai/UI/authentication/Login.dart';
 import 'package:learnai/UI/home/Home.dart';
 import 'package:learnai/Widgets/AppBar.dart';
@@ -19,10 +20,56 @@ class MySettings extends StatefulWidget {
 
 class _MySettingsState extends State<MySettings> {
   late String userId;
-  late String fetchedText = '';
-  bool areNotificationsEnabled = true;
+  String accountStatus = 'Free'; // Default status
+  bool areNotificationsEnabled = false;
   bool isDeleting = false;
   bool isReauthenticating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchSubscriptionStatus();
+    _loadNotificationState();
+  }
+
+  Future<void> _loadNotificationState() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      areNotificationsEnabled = prefs.getBool('notification_enabled') ?? false;
+    });
+  }
+
+  Future<void> _toggleNotification() async {
+    setState(() {
+      areNotificationsEnabled = !areNotificationsEnabled;
+    });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('notification_enabled', areNotificationsEnabled);
+
+    if (areNotificationsEnabled) {
+      NotificationService.showLocalNotification(
+        'Notifications Enabled',
+        'You will now receive notifications.',
+        'payload',
+      );
+    }
+  }
+
+  void fetchSubscriptionStatus() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      userId = user.uid;
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+      if (userDoc.exists) {
+        setState(() {
+          accountStatus = userDoc['subscription'] ? 'Premium' : 'Free';
+        });
+      }
+    }
+  }
 
   void delete() async {
     showDialog(
@@ -321,7 +368,7 @@ class _MySettingsState extends State<MySettings> {
                         ),
                         Spacer(),
                         Text(
-                          'Free',
+                          accountStatus,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 17.sp,
                             fontWeight: FontWeight.w400,
@@ -330,6 +377,27 @@ class _MySettingsState extends State<MySettings> {
                         ),
                       ],
                     ),
+                  ),
+                  SizedBox(height: 3.5.h),
+                  Row(
+                    children: [
+                      Text(
+                        'Enable Notifications'.tr,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 17.sp,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black,
+                        ),
+                      ),
+                      Spacer(),
+                      Switch(
+                        value: areNotificationsEnabled,
+                        onChanged: (value) {
+                          _toggleNotification();
+                        },
+                        activeColor: globalController.primaryColor.value,
+                      ),
+                    ],
                   ),
                   SizedBox(height: 3.5.h),
                   InkWell(

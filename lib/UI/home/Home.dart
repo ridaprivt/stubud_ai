@@ -34,7 +34,6 @@ class _HomeState extends State<Home> {
   List<String> mysubjects = [];
   PageController _pageController = PageController();
   bool load = false;
-  late Timer _adTimer;
   bool subscription = true;
 
   @override
@@ -49,7 +48,6 @@ class _HomeState extends State<Home> {
     if (!subscription) {
       AdsServices().disposeAds();
       GoogleAds().dispose();
-      _adTimer.cancel();
     }
   }
 
@@ -72,14 +70,7 @@ class _HomeState extends State<Home> {
     if (!subscription) {
       AdsServices().init();
       GoogleAds().initialize();
-      _startAdTimer();
     }
-  }
-
-  void _startAdTimer() {
-    _adTimer = Timer.periodic(Duration(seconds: 30), (timer) {
-      GoogleAds().showInterstitialAd();
-    });
   }
 
   Future<void> loadCachedFacts() async {
