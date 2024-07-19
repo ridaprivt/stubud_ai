@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:learnai/UI/authentication/Login.dart';
 import 'package:learnai/UI/home/Badges.dart';
 import 'package:learnai/UI/home/EditProfile.dart';
 import 'package:learnai/UI/home/Home.dart';
@@ -12,6 +11,11 @@ import 'package:learnai/UI/home/Settings.dart';
 import 'package:learnai/UI/subject/Subject.dart';
 import 'package:learnai/UI/subscription/Subscription.dart';
 import 'package:learnai/main.dart';
+import 'package:learnai/res/assets/Images.dart';
+import 'package:learnai/res/colors/Colors.dart';
+import 'package:learnai/res/methods/ProfileMethods.dart';
+import 'package:learnai/res/spaces/Spaces.dart';
+import 'package:learnai/res/styles/TextStyles.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,206 +37,13 @@ class _ProfileState extends State<Profile> {
   @override
   void initState() {
     super.initState();
-    _calculateAndAssignBadges();
-  }
-
-  Future<Map<String, dynamic>> _getUserData() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      return userDoc.data() as Map<String, dynamic>;
-    }
-    return {};
-  }
-
-  Future<void> _calculateAndAssignBadges() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      CollectionReference quizzesCollection = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('quizzes');
-
-      QuerySnapshot subjectSnapshots = await quizzesCollection.get();
-
-      int totalScore = 0;
-      int totalMarks = 0;
-      int quizCount = 0;
-
-      for (var subjectDoc in subjectSnapshots.docs) {
-        print('Processing subject: ${subjectDoc.id}');
-
-        // Get all quiz collections (quiz1, quiz2, etc.) under each subject
-        QuerySnapshot quizzesSnapshot = await quizzesCollection
-            .doc(subjectDoc.id)
-            .collection('quizzes')
-            .get();
-
-        for (var quizDoc in quizzesSnapshot.docs) {
-          print('Processing quiz: ${quizDoc.id}');
-
-          // Get the quizData document within each quiz collection
-          DocumentSnapshot quizDataDoc = await quizzesCollection
-              .doc(subjectDoc.id)
-              .collection(quizDoc.id)
-              .doc('quizData')
-              .get();
-
-          if (quizDataDoc.exists) {
-            var quizData = quizDataDoc.data() as Map<String, dynamic>;
-            print('Quiz data found: $quizData');
-            if (quizData.containsKey('obtained_marks') &&
-                quizData.containsKey('total_marks')) {
-              totalScore += int.parse(quizData['obtained_marks']);
-              totalMarks += int.parse(quizData['total_marks']);
-              quizCount++;
-            } else {
-              print('Quiz data missing required fields.');
-            }
-          } else {
-            print('Quiz data does not exist for ${quizDoc.id}');
-          }
-        }
-      }
-
-      print('Total quizzes processed: $quizCount');
-      print('Total score: $totalScore');
-      print('Total marks: $totalMarks');
-
-      double averageScore = (totalScore / totalMarks) * 100;
-      if (averageScore >= 90) {
-        badge = 'High Achiever';
-      } else if (averageScore >= 70) {
-        badge = 'Quick Learner';
-      } else {
-        badge = 'Night Owl';
-      }
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .update({'badge': badge});
-    }
-  }
-
-  Future<void> proceed() async {
-    if (gradeController.text.isEmpty || items.isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please add subjects and grade.',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return;
-    }
-    setState(() {
-      post = true;
-    });
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getString('userID') ?? 'unknown';
-
-      CollectionReference users =
-          FirebaseFirestore.instance.collection('users');
-
-      await users.doc(userId).set({
-        'subjects': FieldValue.arrayUnion(items),
-        'grade': gradeController.text,
-      }, SetOptions(merge: true));
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Data saved successfully!')),
-      );
-      Get.offAll(Home());
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save data: $e')),
-      );
-    } finally {
-      setState(() {
-        post = false;
-      });
-    }
-  }
-
-  Future<void> _showAddSubjectDialog() async {
-    TextEditingController subjectController = TextEditingController();
-
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Add Subject',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-          ),
-          content: TextField(
-            controller: subjectController,
-            decoration: InputDecoration(
-              hintText: 'Enter Subject',
-              hintStyle: GoogleFonts.poppins(),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                'Cancel',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text(
-                'Add',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-              ),
-              onPressed: () async {
-                if (subjectController.text.isNotEmpty) {
-                  setState(() {
-                    items.add(subjectController.text);
-                  });
-
-                  final prefs = await SharedPreferences.getInstance();
-                  final userId = prefs.getString('userID') ?? 'unknown';
-
-                  CollectionReference users =
-                      FirebaseFirestore.instance.collection('users');
-
-                  try {
-                    await users.doc(userId).set({
-                      'subjects':
-                          FieldValue.arrayUnion([subjectController.text]),
-                    }, SetOptions(merge: true));
-
-                    // Display Snackbar after successfully saving the data
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Subject added successfully!')),
-                    );
-                    Get.offAll(Home());
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Failed to add subject: $e')),
-                    );
-                  }
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
+    ProfileMethods.calculateAndAssignBadges();
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
-      future: _getUserData(),
+      future: ProfileMethods.getUserData(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return SafeArea(
@@ -272,7 +83,7 @@ class _ProfileState extends State<Profile> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Image.asset(
-                        'assets/cable.png',
+                        AppImages.cable,
                         width: 100.w,
                       ),
                       const Spacer(),
@@ -280,10 +91,10 @@ class _ProfileState extends State<Profile> {
                         height: 80.h,
                         width: 100.w,
                         decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.white,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
+                                color: AppColors.grey.withOpacity(0.5),
                                 spreadRadius: 5,
                                 blurRadius: 7,
                                 offset: const Offset(0, 3),
@@ -308,7 +119,7 @@ class _ProfileState extends State<Profile> {
                                           globalController.primaryColor.value,
                                       radius: 19.sp,
                                       child: Image.asset(
-                                        'assets/1.png',
+                                        AppImages.avatar1,
                                         height: 19.sp,
                                       ),
                                     ),
@@ -323,7 +134,7 @@ class _ProfileState extends State<Profile> {
                                           globalController.primaryColor.value,
                                       radius: 19.sp,
                                       child: Image.asset(
-                                        'assets/2.png',
+                                        AppImages.avatar2,
                                         height: 19.sp,
                                       ),
                                     ),
@@ -331,32 +142,26 @@ class _ProfileState extends State<Profile> {
                                 ],
                               ),
                             ),
-                            SizedBox(height: 3.h),
+                            Spaces.height(3),
                             Center(
                               child: Column(
                                 children: [
                                   Text(
                                     userData['userName'],
                                     textAlign: TextAlign.center,
-                                    style: GoogleFonts.poppins(
-                                        height: 4.sp,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20.sp),
+                                    style: TextStyles.header1(AppColors.black),
                                   ),
-                                  SizedBox(height: 1.h),
+                                  Spaces.height(1),
                                   Text(
                                     userData['email'] ?? '',
                                     textAlign: TextAlign.center,
-                                    style: GoogleFonts.poppins(
-                                        height: 5.sp,
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 15.sp),
+                                    style: TextStyles.body(
+                                        AppColors.grey, 15, FontWeight.w500),
                                   ),
                                 ],
                               ),
                             ),
-                            SizedBox(height: 1.h),
+                            Spaces.height(1),
                             InkWell(
                               onTap: () {
                                 Get.to(Subscription());
@@ -367,20 +172,18 @@ class _ProfileState extends State<Profile> {
                                   children: [
                                     Text(
                                       'Upgrade to Premium ',
-                                      style: GoogleFonts.poppins(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18.sp),
+                                      style: TextStyles.body(
+                                          AppColors.black, 18, FontWeight.bold),
                                     ),
                                     Icon(
                                       Icons.star,
-                                      color: Colors.amber,
+                                      color: AppColors.amber,
                                     )
                                   ],
                                 ),
                               ),
                             ),
-                            SizedBox(height: 1.h),
+                            Spaces.height(1),
                             InkWell(
                               onTap: () {
                                 Get.to(Badges(
@@ -400,17 +203,13 @@ class _ProfileState extends State<Profile> {
                                       children: [
                                         Text('BADGES',
                                             textAlign: TextAlign.center,
-                                            style: GoogleFonts.poppins(
-                                              height: 5.sp,
-                                              fontSize: 20.sp,
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.bold,
-                                            )),
+                                            style: TextStyles.header2(
+                                                AppColors.black)),
                                         const Spacer(),
                                         const Icon(Icons.arrow_forward)
                                       ],
                                     ),
-                                    SizedBox(height: 2.h),
+                                    Spaces.height(2),
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -427,7 +226,7 @@ class _ProfileState extends State<Profile> {
                                 ),
                               ),
                             ),
-                            SizedBox(height: 1.h),
+                            Spaces.height(1),
                             Padding(
                               padding: EdgeInsets.all(15.sp),
                               child: Row(
@@ -435,17 +234,17 @@ class _ProfileState extends State<Profile> {
                                 children: [
                                   Text(
                                     'Subject Trouble?',
-                                    style: GoogleFonts.poppins(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18.sp),
+                                    style: TextStyles.body(
+                                        AppColors.black, 18, FontWeight.bold),
                                   ),
                                   Spacer(),
                                   InkWell(
-                                    onTap: _showAddSubjectDialog,
+                                    onTap: () =>
+                                        ProfileMethods.showAddSubjectDialog(
+                                            context, items),
                                     child: Icon(
                                       Icons.add,
-                                      color: Colors.black,
+                                      color: AppColors.black,
                                     ),
                                   )
                                 ],
@@ -463,7 +262,7 @@ class _ProfileState extends State<Profile> {
                                 },
                               ),
                             ),
-                            SizedBox(height: 7.h),
+                            Spaces.height(7),
                           ],
                         ),
                       ),
@@ -474,8 +273,7 @@ class _ProfileState extends State<Profile> {
                     child: Align(
                       alignment: Alignment.topCenter,
                       child: CircleAvatar(
-                        backgroundColor:
-                            const Color.fromARGB(255, 255, 255, 255),
+                        backgroundColor: AppColors.white,
                         radius: 35.sp,
                         backgroundImage: NetworkImage(
                           userData['userPhotoUrl'] ??
@@ -491,10 +289,10 @@ class _ProfileState extends State<Profile> {
                       icon: Container(
                         padding: EdgeInsets.all(10.sp),
                         decoration: BoxDecoration(
-                            color: Colors.black, shape: BoxShape.circle),
+                            color: AppColors.black, shape: BoxShape.circle),
                         child: Icon(
                           Icons.arrow_back,
-                          color: Colors.white,
+                          color: AppColors.white,
                         ),
                       ))
                 ],
@@ -518,23 +316,20 @@ class _ProfileState extends State<Profile> {
             margin: EdgeInsets.only(left: 15.sp),
             width: 47.sp,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey, width: 3.sp),
+              border: Border.all(color: AppColors.grey, width: 3.sp),
               borderRadius: BorderRadius.circular(20.sp),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/sub.jpg',
+                  AppImages.sub,
                   width: 37.sp,
                   height: 37.sp,
                 ),
                 Text(
                   name,
-                  style: GoogleFonts.poppins(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 15.sp),
+                  style: TextStyles.body(AppColors.black, 15, FontWeight.w500),
                 ),
               ],
             ),
@@ -543,15 +338,13 @@ class _ProfileState extends State<Profile> {
         Positioned(
           right: 0,
           child: InkWell(
-            onTap: () {
-              removeSubject(name);
-            },
+            onTap: () => ProfileMethods.removeSubject(context, items, name),
             child: CircleAvatar(
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.red,
               radius: 13.sp,
               child: Icon(
                 Icons.close,
-                color: Colors.white,
+                color: AppColors.white,
                 size: 15.sp,
               ),
             ),
@@ -561,31 +354,6 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  Future<void> removeSubject(String subject) async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userID') ?? 'unknown';
-
-    CollectionReference users = FirebaseFirestore.instance.collection('users');
-
-    try {
-      await users.doc(userId).update({
-        'subjects': FieldValue.arrayRemove([subject]),
-      });
-
-      setState(() {
-        items.remove(subject);
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Subject removed successfully!')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to remove subject: $e')),
-      );
-    }
-  }
-
   Widget badgeWidget(String img, String text) {
     return Column(
       children: [
@@ -593,13 +361,13 @@ class _ProfileState extends State<Profile> {
           'assets/$img.png',
           width: 23.w,
         ),
-        SizedBox(height: 1.h),
+        Spaces.height(1),
         Text(text,
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              height: 5.sp,
-              color: Colors.black,
-              fontWeight: FontWeight.w500,
+            style: TextStyles.body(
+              AppColors.black,
+              15,
+              FontWeight.w500,
             ))
       ],
     );
