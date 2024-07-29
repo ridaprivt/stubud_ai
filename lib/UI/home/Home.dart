@@ -313,6 +313,8 @@ class _HomeState extends State<Home> {
             ),
             Text(
               name,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
               style: TextStyles.body(AppColors.black, 15, FontWeight.w500),
             ),
           ],

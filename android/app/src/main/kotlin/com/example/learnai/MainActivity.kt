@@ -1,4 +1,4 @@
-package com.learn.ai
+package com.stubud.ai
 
 import io.flutter.embedding.android.FlutterActivity
 

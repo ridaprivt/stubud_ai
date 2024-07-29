@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -24,6 +24,27 @@ class _QuizWidgetState extends State<QuizWidget> {
   String grade = '';
   String resp = '';
   bool isLoading = false;
+  bool isLocked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    checkQuizLock();
+  }
+
+  Future<void> checkQuizLock() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userID = prefs.getString('userID');
+
+    if (userID != null) {
+      final lastQuizAttempt = await fetchLastQuizAttempt(userID);
+      if (lastQuizAttempt != null && !canAttemptQuiz(lastQuizAttempt)) {
+        setState(() {
+          isLocked = true;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +111,9 @@ class _QuizWidgetState extends State<QuizWidget> {
             children: [
               InkWell(
                 onTap: () async {
-                  await handleQuizGeneration();
+                  if (!isLocked) {
+                    await handleQuizGeneration();
+                  }
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -105,13 +128,24 @@ class _QuizWidgetState extends State<QuizWidget> {
                       : Padding(
                           padding: EdgeInsets.symmetric(
                               horizontal: 17.sp, vertical: 14.sp),
-                          child: Text(
-                            'Accept Challenge',
-                            style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                height: 3.sp,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14.sp),
+                          child: Row(
+                            children: [
+                              if (isLocked)
+                                Icon(
+                                  Icons.lock,
+                                  color: Colors.white,
+                                  size: 14.sp,
+                                ),
+                              SizedBox(width: isLocked ? 10.sp : 0),
+                              Text(
+                                'Accept Challenge',
+                                style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    height: 3.sp,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14.sp),
+                              ),
+                            ],
                           ),
                         ),
                 ),
@@ -164,6 +198,15 @@ class _QuizWidgetState extends State<QuizWidget> {
       return;
     }
 
+    final lastQuizAttempt = await fetchLastQuizAttempt(userID);
+    if (lastQuizAttempt != null && !canAttemptQuiz(lastQuizAttempt)) {
+      showSnackBar("You can attempt the next quiz after 24 hours.");
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+
     final grade = await fetchUserGrade(userID);
     if (grade == null) {
       showSnackBar("Failed to fetch user grade.");
@@ -197,6 +240,7 @@ class _QuizWidgetState extends State<QuizWidget> {
 
     final isSaved = await saveQuizData(quizData, userID, nextQuizNumber);
     if (isSaved) {
+      await updateLastQuizAttempt(userID);
       Get.to(Quiz(
         subject: widget.subjectName,
       ));
@@ -364,15 +408,66 @@ Format (sample only) should be like this. Dont Change Format:
     return quizzes.isNotEmpty ? quizzes : null;
   }
 
+  Future<DateTime?> fetchLastQuizAttempt(String userID) async {
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(userID);
+    final subjectDoc = userDoc.collection('quizzes').doc(widget.subjectName);
+
+    final snapshot = await subjectDoc.get();
+    if (snapshot.exists) {
+      final data = snapshot.data();
+      if (data != null && data.containsKey('lastQuizAttempt')) {
+        final timestamp = data['lastQuizAttempt'] as Timestamp;
+        return timestamp.toDate();
+      }
+    }
+    return null;
+  }
+
+  Future<void> updateLastQuizAttempt(String userID) async {
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(userID);
+    final subjectDoc = userDoc.collection('quizzes').doc(widget.subjectName);
+
+    await subjectDoc.set({
+      'lastQuizAttempt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    // Schedule the notification
+    await scheduleNotification();
+  }
+
+  bool canAttemptQuiz(DateTime lastQuizAttempt) {
+    final now = DateTime.now();
+    final difference = now.difference(lastQuizAttempt);
+    return difference.inHours >= 24;
+  }
+
+  Future<void> scheduleNotification() async {
+    DateTime now = DateTime.now();
+    DateTime scheduledTime = now.add(Duration(hours: 24));
+
+    await AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: 10,
+        channelKey: 'basic_channel',
+        title: 'Quiz Time',
+        body: 'You can attempt a new quiz now!',
+        notificationLayout: NotificationLayout.Default,
+      ),
+      schedule: NotificationCalendar(
+        year: scheduledTime.year,
+        month: scheduledTime.month,
+        day: scheduledTime.day,
+        hour: scheduledTime.hour,
+        minute: scheduledTime.minute,
+        second: scheduledTime.second,
+        millisecond: 0,
+        repeats: false,
+      ),
+    );
+  }
+
   void showSnackBar(String message) {
     final snackBar = SnackBar(content: Text(message));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  void printQuiz(String? question, List<String> options, String? answer) {
-    print('-Question: $question');
-    print('-Options: ${options.join(', ')}');
-    print('-Answer: $answer');
-    print('-----------------------------');
   }
 }

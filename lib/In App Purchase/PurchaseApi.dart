@@ -16,7 +16,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class PurchaseApi {
-  static const _apiKey = 'goog_vgyYXYNQsFnZWBOtvGFpBaHvtzw';
+  static const _apiKey = 'goog_QPLmbXRIJRdTcBtNyyYezRujpWj';
 
   static Future init() async {
     await Purchases.setLogLevel(LogLevel.debug);

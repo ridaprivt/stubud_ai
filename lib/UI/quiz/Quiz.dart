@@ -1,16 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:learnai/UI/home/Home.dart';
+import 'package:learnai/UI/quiz/Result.dart';
 import 'package:learnai/Widgets/AppBar.dart';
 import 'package:learnai/main.dart';
-import 'package:learnai/res/assets/Images.dart';
-import 'package:learnai/res/methods/QuizMethods.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
-import 'package:learnai/res/colors/Colors.dart';
-import 'package:learnai/res/spaces/Spaces.dart';
-import 'package:learnai/res/styles/TextStyles.dart';
 
 class Quiz extends StatefulWidget {
   final String? subject;
@@ -35,22 +35,8 @@ class _QuizState extends State<Quiz> {
   @override
   void initState() {
     super.initState();
-    QuizMethods.fetchQuizData(setState, widget.subject, setLoad,
-        setNoQuizAvailable, quizData!, load, _noQuizAvailable, context);
-    QuizMethods.startCountdown(
-        setState,
-        remainingTime,
-        countdownTimer,
-        (option) => QuizMethods.submitAnswer(
-            option,
-            currentIndex,
-            quizData!,
-            setState,
-            countdownTimer,
-            widget.subject,
-            context,
-            remainingTime,
-            selectedOption));
+    fetchQuizData();
+    startCountdown();
   }
 
   @override
@@ -59,29 +45,191 @@ class _QuizState extends State<Quiz> {
     super.dispose();
   }
 
-  void setLoad(bool value) {
-    setState(() {
-      load = value;
+  void startCountdown() {
+    remainingTime = 15;
+    countdownTimer?.cancel();
+    countdownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (remainingTime > 0) {
+        setState(() {
+          remainingTime--;
+        });
+      } else {
+        timer.cancel();
+        submitAnswer(null);
+        print('Times Up');
+      }
     });
   }
 
-  void setNoQuizAvailable(bool value) {
+  void submitAnswer(String? option) {
+    saveSubmittedQuiz(currentIndex, option);
+    if (currentIndex < quizData!.length - 1) {
+      setState(() {
+        currentIndex++;
+        selectedOption = null;
+      });
+      startCountdown();
+    } else {
+      print('All questions answered');
+      setState(() {
+        currentIndex++;
+        selectedOption = null;
+      });
+    }
+  }
+
+  void fetchQuizData() async {
     setState(() {
-      _noQuizAvailable = value;
+      load = true;
+    });
+
+    final prefs = await SharedPreferences.getInstance();
+    final userID = prefs.getString('userID');
+
+    if (userID == null) {
+      showSnackBar("No userID found in SharedPreferences.");
+      setState(() {
+        load = false;
+        _noQuizAvailable = true;
+      });
+      return;
+    }
+
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(userID);
+    final subjectDoc = userDoc.collection('quizzes').doc(widget.subject);
+
+    // Fetch the latest quiz number
+    int latestQuizNumber = await determineNextQuizNumber(userID);
+
+    if (latestQuizNumber == 1) {
+      // No quizzes found
+      setState(() {
+        load = false;
+        _noQuizAvailable = true;
+      });
+      return;
+    }
+
+    // Fetch the latest quiz data
+    final quizDataDoc = await subjectDoc
+        .collection('quiz${latestQuizNumber - 1}')
+        .doc('quizData')
+        .get();
+
+    if (!quizDataDoc.exists) {
+      setState(() {
+        load = false;
+        _noQuizAvailable = true;
+      });
+      return;
+    }
+
+    try {
+      final data = quizDataDoc.data();
+      if (data == null || data['quiz'] == null) {
+        setState(() {
+          load = false;
+          _noQuizAvailable = true;
+        });
+        return;
+      }
+
+      setState(() {
+        quizData = List<Map<String, dynamic>>.from(data['quiz']);
+        load = false;
+        _noQuizAvailable = false;
+      });
+    } catch (e) {
+      print("Error parsing quiz data: $e");
+      setState(() {
+        load = false;
+        _noQuizAvailable = true;
+      });
+    }
+  }
+
+  Future<void> saveSubmittedQuiz(
+      int currentIndex, String? selectedOption) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userID = prefs.getString('userID');
+
+    if (userID == null) {
+      showSnackBar("No userID found in SharedPreferences.");
+      return;
+    }
+
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(userID);
+    final subjectDoc = userDoc.collection('quizzes').doc(widget.subject);
+
+    // Fetch the latest quiz number
+    int latestQuizNumber = await determineNextQuizNumber(userID);
+
+    if (latestQuizNumber == 1) {
+      // No quizzes found, can't submit
+      showSnackBar("No quiz found to submit.");
+      return;
+    }
+
+    // Fetch the latest quiz data
+    final quizDataDoc = await subjectDoc
+        .collection('quiz${latestQuizNumber - 1}')
+        .doc('quizData')
+        .get();
+
+    if (!quizDataDoc.exists) {
+      showSnackBar("Failed to fetch quiz data.");
+      return;
+    }
+
+    final Map<String, dynamic> quizData = quizDataDoc.data()!;
+    List submittedQuiz = quizData['submitted_quiz'] ?? [];
+
+    if (currentIndex < quizData['quiz'].length) {
+      Map<String, dynamic> currentQuestion = quizData['quiz'][currentIndex];
+      String question = currentQuestion['question'] ?? "Unknown question";
+
+      submittedQuiz.add({
+        'question': question,
+        'selected_option': selectedOption,
+      });
+    }
+
+    // Calculate total marks
+    int totalMarks = quizData['quiz'].length;
+
+    await subjectDoc
+        .collection('quiz${latestQuizNumber - 1}')
+        .doc('quizData')
+        .update({
+      'submitted_quiz': submittedQuiz,
+      'total_marks': totalMarks.toString(),
     });
   }
 
-  void setCalculate(bool value) {
-    setState(() {
-      calculate = value;
-    });
+  Future<int> determineNextQuizNumber(String userID) async {
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(userID);
+    final subjectDoc = userDoc.collection('quizzes').doc(widget.subject);
+
+    int nextQuizNumber = 1;
+    while (true) {
+      final quizCollection = await subjectDoc
+          .collection('quiz$nextQuizNumber')
+          .doc('quizData')
+          .get();
+      if (quizCollection.exists) {
+        nextQuizNumber++;
+      } else {
+        break;
+      }
+    }
+    return nextQuizNumber;
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: AppColors.white,
+        backgroundColor: Colors.white,
         appBar: MyAppBar(),
         body: load
             ? Center(
@@ -93,7 +241,7 @@ class _QuizState extends State<Quiz> {
                         shape: BoxShape.circle,
                         color: index.isEven
                             ? globalController.primaryColor.value
-                            : AppColors.white,
+                            : Colors.white,
                       ),
                     );
                   },
@@ -103,12 +251,15 @@ class _QuizState extends State<Quiz> {
                 ? Center(
                     child: Text(
                       'No Quiz Available',
-                      style: TextStyles.header1(AppColors.black),
+                      style: GoogleFonts.poppins(
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   )
                 : Column(
                     children: [
-                      Spaces.height(2),
+                      SizedBox(height: 2.h),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -121,24 +272,28 @@ class _QuizState extends State<Quiz> {
                               padding: 0,
                               selectedColor:
                                   globalController.primaryColor.value,
-                              unselectedColor: AppColors.secondary,
+                              unselectedColor:
+                                  const Color.fromARGB(255, 232, 232, 232),
                             ),
                           ),
-                          Spaces.width(3),
+                          SizedBox(width: 3.w),
                           Icon(
                             Icons.timer_outlined,
-                            color: AppColors.black,
+                            color: Colors.black,
                           ),
-                          Spaces.width(0.5),
+                          SizedBox(width: 0.5.w),
                           Text(
                             remainingTime.toString(),
-                            style: TextStyles.header2(AppColors.black),
+                            style: GoogleFonts.poppins(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ],
                       ),
-                      Spaces.height(3),
+                      SizedBox(height: 3.h),
                       Part1(),
-                      Spaces.height(5),
+                      SizedBox(height: 5.h),
                       if (currentIndex != quizData!.length) Submit(),
                       if (currentIndex == quizData!.length) MyResult(),
                     ],
@@ -154,25 +309,16 @@ class _QuizState extends State<Quiz> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               duration: Duration(seconds: 1),
-              backgroundColor: AppColors.red,
+              backgroundColor: Colors.red,
               content: Text('Select one possible answer',
-                  style: TextStyles.body(AppColors.white, 16, FontWeight.w500)),
+                  style: GoogleFonts.poppins()),
             ),
           );
           return;
         }
 
         countdownTimer?.cancel();
-        QuizMethods.submitAnswer(
-            selectedOption,
-            currentIndex,
-            quizData!,
-            setState,
-            countdownTimer,
-            widget.subject,
-            context,
-            remainingTime,
-            selectedOption);
+        submitAnswer(selectedOption);
       },
       child: Container(
         height: 9.h,
@@ -180,11 +326,16 @@ class _QuizState extends State<Quiz> {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15.sp),
-          color: AppColors.primary,
+          color: const Color.fromARGB(255, 76, 76, 76),
         ),
         child: Text(
           'CONTINUE',
-          style: TextStyles.header1(AppColors.white),
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            height: 3.sp,
+            fontWeight: FontWeight.bold,
+            fontSize: 20.sp,
+          ),
         ),
       ),
     );
@@ -193,8 +344,7 @@ class _QuizState extends State<Quiz> {
   MyResult() {
     return InkWell(
       onTap: () async {
-        QuizMethods.calculateResults(
-            setState, widget.subject, setCalculate, context, calculate);
+        calculateResults();
       },
       child: Container(
         height: 9.h,
@@ -214,16 +364,103 @@ class _QuizState extends State<Quiz> {
                           shape: BoxShape.circle,
                           color: index.isEven
                               ? globalController.primaryColor.value
-                              : AppColors.white,
+                              : Colors.white,
                         ),
                       );
                     }))
             : Text(
                 'View Results',
-                style: TextStyles.header1(AppColors.white),
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  height: 3.sp,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20.sp,
+                ),
               ),
       ),
     );
+  }
+
+  void calculateResults() async {
+    setState(() {
+      calculate = true;
+    });
+
+    final prefs = await SharedPreferences.getInstance();
+    final userID = prefs.getString('userID');
+
+    if (userID == null) {
+      showSnackBar("No userID found in SharedPreferences.");
+      setState(() {
+        calculate = false;
+      });
+      return;
+    }
+
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(userID);
+    final subjectDoc = userDoc.collection('quizzes').doc(widget.subject);
+
+    // Fetch the latest quiz number
+    int latestQuizNumber = await determineNextQuizNumber(userID);
+
+    if (latestQuizNumber == 1) {
+      // No quizzes found
+      showSnackBar("No quiz found to calculate results.");
+      setState(() {
+        calculate = false;
+      });
+      return;
+    }
+
+    // Fetch the latest quiz data
+    final quizDataDoc = await subjectDoc
+        .collection('quiz${latestQuizNumber - 1}')
+        .doc('quizData')
+        .get();
+
+    if (!quizDataDoc.exists) {
+      showSnackBar("Failed to fetch quiz data.");
+      setState(() {
+        calculate = false;
+      });
+      return;
+    }
+
+    final Map<String, dynamic> quizData = quizDataDoc.data()!;
+    List submittedQuiz = quizData['submitted_quiz'] ?? [];
+
+    int obtainedMarks = 0;
+
+    for (var submitted in submittedQuiz) {
+      String question = submitted['question'];
+      String selectedOption = submitted['selected_option'];
+
+      var quizQuestion =
+          quizData['quiz'].firstWhere((q) => q['question'] == question);
+      if (quizQuestion != null && quizQuestion['answer'] == selectedOption) {
+        obtainedMarks++;
+      }
+    }
+
+    int totalMarks = quizData['quiz'].length;
+
+    // Save the results to Firebase
+    await subjectDoc
+        .collection('quiz${latestQuizNumber - 1}')
+        .doc('quizData')
+        .update({
+      'obtained_marks': obtainedMarks.toString(),
+      'total_marks': totalMarks.toString(),
+    });
+
+    Get.to(Result(
+      obtainedMarks: obtainedMarks.toString(),
+      totalMarks: totalMarks.toString(),
+    ));
+
+    setState(() {
+      calculate = false;
+    });
   }
 
   Part1() {
@@ -238,18 +475,21 @@ class _QuizState extends State<Quiz> {
 
       return Column(
         children: [
-          Spaces.height(1),
+          SizedBox(height: 1.h),
           Container(
             width: 85.w,
             child: Text(
               question,
               textAlign: TextAlign.center,
-              style: TextStyles.subtitle(AppColors.black),
+              style: GoogleFonts.poppins(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-          Spaces.height(3),
+          SizedBox(height: 3.h),
           box(selectedOption),
-          Spaces.height(2),
+          SizedBox(height: 2.h),
           Container(
             width: 87.w,
             child: Wrap(
@@ -275,17 +515,20 @@ class _QuizState extends State<Quiz> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Image.asset(
-            AppImages.my,
+            'assets/my.png',
             width: 47.w,
           ),
-          Spaces.height(3),
+          SizedBox(height: 3.h),
           Center(
             child: Container(
               width: 80.w,
               child: Text(
                 'Quiz Completed',
                 textAlign: TextAlign.center,
-                style: TextStyles.header2(AppColors.black),
+                style: GoogleFonts.poppins(
+                  fontSize: 17.sp,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -301,8 +544,8 @@ class _QuizState extends State<Quiz> {
       padding: EdgeInsets.all(15.sp),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15.sp),
-        color: AppColors.secondary,
-        border: Border.all(color: AppColors.black, width: 5.sp),
+        color: const Color.fromARGB(255, 220, 220, 220),
+        border: Border.all(color: Colors.black, width: 5.sp),
       ),
       child: selectedOption != null
           ? Wrap(
@@ -311,13 +554,15 @@ class _QuizState extends State<Quiz> {
                     padding: EdgeInsets.symmetric(
                         horizontal: 15.sp, vertical: 13.sp),
                     decoration: BoxDecoration(
-                      color: AppColors.black,
+                      color: Colors.black,
                       borderRadius: BorderRadius.circular(15.sp),
                     ),
                     child: Text(
                       selectedOption,
-                      style:
-                          TextStyles.body(AppColors.white, 16, FontWeight.w500),
+                      style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16.sp),
                     )),
               ],
             )
@@ -337,13 +582,16 @@ class _QuizState extends State<Quiz> {
           alignment: Alignment.center,
           padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 12.sp),
           decoration: BoxDecoration(
-            color: AppColors.black,
+            color: Colors.black,
             borderRadius: BorderRadius.circular(15.sp),
           ),
           child: Text(
             text,
             textAlign: TextAlign.center,
-            style: TextStyles.body(AppColors.white, 15, FontWeight.w500),
+            style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 15.sp),
           )),
     );
   }

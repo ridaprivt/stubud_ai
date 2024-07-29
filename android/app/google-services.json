@@ -7,18 +7,34 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:395308268936:android:4e9eb69d0773b89d0b4e3d",
+        "mobilesdk_app_id": "1:395308268936:android:02969dfc7d384b7d0b4e3d",
         "android_client_info": {
-          "package_name": "com.learn.ai"
+          "package_name": "com.stubud.ai"
         }
       },
       "oauth_client": [
         {
-          "client_id": "395308268936-0aodki6cn3bbksn7qvhgpfb4us96ss60.apps.googleusercontent.com",
+          "client_id": "395308268936-ef7i6c01n4o340j87k7dhqu9u8p9ol1j.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.learn.ai",
+            "package_name": "com.stubud.ai",
+            "certificate_hash": "89f2df6087eb5779414ad34b66eee4d4e3cdfada"
+          }
+        },
+        {
+          "client_id": "395308268936-h2irnc6ngo5sn9vfdki0brg3o5opneo1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stubud.ai",
             "certificate_hash": "86dda3f55315019be27e438a448f10f2f97a9449"
+          }
+        },
+        {
+          "client_id": "395308268936-uss3snnejrj9r6k5tp3r9i0vri15413a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stubud.ai",
+            "certificate_hash": "98f3621766c037ef6dca0c030949819d2831fcf6"
           }
         },
         {
@@ -42,7 +58,7 @@
               "client_id": "395308268936-36bm7ah7sbc36ua94m3bi7ai5lmq70s7.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.learnai"
+                "bundle_id": "com.example.logo"
               }
             }
           ]

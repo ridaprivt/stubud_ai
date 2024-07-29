@@ -50,7 +50,7 @@ class _SubscriptionState extends State<Subscription> {
               },
               child: PlanCard(
                 title: 'Subscription Plan',
-                price: '\$04.99/- per month',
+                price: '5\$ /- per month',
                 features: [
                   'Pop Quiz of last topic you studied',
                   'Unlimited document scans',

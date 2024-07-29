@@ -1,5 +1,4 @@
 // ignore_for_file: prefer_const_constructors
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -9,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:learnai/Google%20Ads/BannerAd.dart';
 import 'package:learnai/Google%20Ads/InterstitialAd.dart';
-import 'package:learnai/UI/home/Home.dart';
 import 'package:learnai/UI/subject/Scores.dart';
 import 'package:learnai/UI/subject/Topic.dart';
 import 'package:learnai/Widgets/AppBar.dart';
