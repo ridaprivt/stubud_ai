@@ -437,10 +437,10 @@ class _SubjectState extends State<Subject> {
                             builder: (context) => Topic(
                               topic: topicData['topic'],
                               topicIntro: topicData['intro'],
-                              subTopics: (json.decode(topicData['subTopics'])
-                                      as List<dynamic>)
-                                  .map((e) => e.toString())
-                                  .toList(),
+                              subTopics:
+                                  (topicData['subTopics'] as List<dynamic>)
+                                      .map((e) => e.toString())
+                                      .toList(),
                             ),
                           ),
                         );
